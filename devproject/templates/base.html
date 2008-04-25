@@ -1,0 +1,21 @@
+<html>
+    <head>
+        <title>{% block head_title %}{% endblock %}</title>
+        <style>
+            body {
+                font-family: "Lucida Grande";
+            }
+            ul.errorlist {
+                color: #F00;
+                font-size: 9pt;
+                margin: 0;
+                padding: 0;
+                list-style: none;
+            }
+        </style>
+    </head>
+    <body>
+        {% block body_content %}
+        {% endblock %}
+    </body>
+</html>

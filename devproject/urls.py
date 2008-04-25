@@ -1,9 +1,11 @@
 from django.conf.urls.defaults import *
 
-urlpatterns = patterns('',
-    # Example:
-    # (r'^devproject/', include('devproject.foo.urls')),
+from django.views.generic.simple import direct_to_template
 
-    # Uncomment this for admin:
+urlpatterns = patterns('',
+    
+    (r'^$', direct_to_template, {"template": "homepage.html"}),
+    (r'^signup/$', 'devtest.views.signup'),
+    
     (r'^admin/', include('django.contrib.admin.urls')),
 )

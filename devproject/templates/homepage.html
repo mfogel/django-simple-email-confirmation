@@ -9,6 +9,18 @@
 <ul>
     <li><a href="/admin/logout/">logout</a></li>
 </ul>
+<p>Your email addresses:</p>
+<ul>
+{% for emailaddress in user.emailaddress_set.all %}
+    <li>{{ emailaddress.email }}
+        {% if emailaddress.verified %}
+        <span class="verified">verified</span>
+        {% else %}
+        <span class="unverified">unverified</span>
+        {% endif %}
+    </li>
+{% endfor %}
+</ul>
 {% else %}
 <p>Not logged in.</p>
 <ul>

@@ -37,3 +37,12 @@ class SignupForm(forms.Form):
         if email:
             EmailAddress.objects.add_email(new_user, email)
         return username, password # required for authenticate()
+
+
+class AddEmailForm(forms.Form):
+    
+    email = forms.EmailField(label="Email", required=True, widget=forms.TextInput())
+    
+    def save(self, user):
+        return EmailAddress.objects.add_email(user, self.cleaned_data["email"])
+        

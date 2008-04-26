@@ -20,6 +20,11 @@
     </li>
 {% endfor %}
 </ul>
+<form method="post" action="">
+<table>{{ add_email_form.as_table }}</table>
+<input type="submit" value="add"/>
+</form>
+
 {% else %}
 <p>Not logged in.</p>
 <ul>

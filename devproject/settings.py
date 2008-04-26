@@ -81,3 +81,5 @@ INSTALLED_APPS = (
     'emailconfirmation',
     'devtest',
 )
+
+# DEFAULT_FROM_EMAIL = "noreply@example.com"

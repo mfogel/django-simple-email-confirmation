@@ -41,8 +41,19 @@ class SignupForm(forms.Form):
 
 class AddEmailForm(forms.Form):
     
+    def __init__(self, data=None, user=None):
+        super(AddEmailForm, self).__init__(data=data)
+        self.user = user
+    
     email = forms.EmailField(label="Email", required=True, widget=forms.TextInput())
     
-    def save(self, user):
-        return EmailAddress.objects.add_email(user, self.cleaned_data["email"])
+    def clean_email(self):
+        try:
+            EmailAddress.objects.get(user=self.user, email=self.cleaned_data["email"])
+        except EmailAddress.DoesNotExist:
+            return self.cleaned_data["email"]
+        raise forms.ValidationError(u"This email address already associated with this account.")
+    
+    def save(self):
+        return EmailAddress.objects.add_email(self.user, self.cleaned_data["email"])
         

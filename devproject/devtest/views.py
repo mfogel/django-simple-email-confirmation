@@ -20,9 +20,9 @@ def signup(request):
 
 def homepage(request):
     if request.method == "POST" and request.user.is_authenticated():
-        add_email_form = AddEmailForm(request.POST)
+        add_email_form = AddEmailForm(request.POST, request.user)
         if add_email_form.is_valid():
-            add_email_form.save(request.user)
+            add_email_form.save()
     else:
         add_email_form = AddEmailForm()
     

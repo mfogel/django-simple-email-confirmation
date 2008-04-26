@@ -73,7 +73,7 @@ class EmailConfirmationManager(models.Manager):
 
 class EmailConfirmation(models.Model):
     
-    email_address = models.ForeignKey(EmailAddress, unique=True)
+    email_address = models.ForeignKey(EmailAddress)
     sent = models.DateTimeField()
     confirmation_key = models.CharField(max_length=40)
     

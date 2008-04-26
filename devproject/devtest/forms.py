@@ -2,6 +2,7 @@ from django import newforms as forms
 from django.core.validators import alnum_re
 
 from django.contrib.auth.models import User
+from emailconfirmation.models import EmailAddress
 
 # this code based in-part on django-registration
 
@@ -33,5 +34,6 @@ class SignupForm(forms.Form):
         email = self.cleaned_data["email"]
         password = self.cleaned_data["password1"]
         new_user = User.objects.create_user(username, email, password)
-        # @@@
+        if email:
+            EmailAddress.objects.add_email(new_user, email)
         return username, password # required for authenticate()

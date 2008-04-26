@@ -4,6 +4,13 @@
 
 {% block body_content %}
 {% if user.is_authenticated %}
+{% if messages %}
+<ul>
+    {% for message in messages %}
+    <li>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
 <p>Logged in as {{ user }}.</p>
 <ul>
     <li><a href="/logout/">logout</a></li>
@@ -16,13 +23,17 @@
         <span class="verified">verified</span>
         {% else %}
         <span class="unverified">unverified</span>
+        <form method="post" action="">
+            <input type="hidden" name="email" value="{{ emailaddress.email }}"/>
+            <input type="submit" name="action" value="send"/> another confirmation email
+        </form>
         {% endif %}
     </li>
 {% endfor %}
 </ul>
 <form method="post" action="">
 <table>{{ add_email_form.as_table }}</table>
-<input type="submit" value="add"/>
+<input type="submit" name="action" value="add"/>
 </form>
 
 {% else %}

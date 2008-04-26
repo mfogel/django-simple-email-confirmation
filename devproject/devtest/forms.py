@@ -35,6 +35,7 @@ class SignupForm(forms.Form):
         password = self.cleaned_data["password1"]
         new_user = User.objects.create_user(username, email, password)
         if email:
+            self.user.message_set.create(message="Confirmation email sent to %s" % email)
             EmailAddress.objects.add_email(new_user, email)
         return username, password # required for authenticate()
 
@@ -55,5 +56,6 @@ class AddEmailForm(forms.Form):
         raise forms.ValidationError(u"This email address already associated with this account.")
     
     def save(self):
+        self.user.message_set.create(message="Confirmation email sent to %s" % self.cleaned_data["email"])
         return EmailAddress.objects.add_email(self.user, self.cleaned_data["email"])
         

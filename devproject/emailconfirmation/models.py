@@ -59,7 +59,10 @@ class EmailConfirmationManager(models.Manager):
         confirmation_key = sha.new(salt + email_address.email).hexdigest()
         
         subject = render_to_string("emailconfirmation/email_confirmation_subject.txt")
-        message = render_to_string("emailconfirmation/email_confirmation_message.txt")
+        message = render_to_string("emailconfirmation/email_confirmation_message.txt", {
+            "user": email_address.user,
+            "confirmation_key": confirmation_key,
+        })
         # @@@ eventually use django-mailer
         send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email_address.email])
         print "sent %s '%s' to %s" % (subject, message, email_address.email)

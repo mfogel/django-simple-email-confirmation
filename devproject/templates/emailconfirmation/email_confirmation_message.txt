@@ -1,5 +1,3 @@
-User {{ username }} at django-email-confirmation has given this as an email address.
+User '{{ user }}' at django-email-confirmation has given this as an email address.
 
-To confirm this is correct, click HERE.
-
-Thanks!
+To confirm this is correct, go to http://localhost:8001/confirm_email/{{ confirmation_key }}/ 

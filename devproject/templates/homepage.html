@@ -6,6 +6,9 @@
 <h1>Email Confirmation Test</h1>
 {% if user.is_authenticated %}
 <p>Logged in as {{ user }}.</p>
+<ul>
+    <li><a href="/admin/logout/">logout</a></li>
+</ul>
 {% else %}
 <p>Not logged in.</p>
 <ul>

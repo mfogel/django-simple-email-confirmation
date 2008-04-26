@@ -7,7 +7,7 @@
 {% if user.is_authenticated %}
 <p>Logged in as {{ user }}.</p>
 <ul>
-    <li><a href="/admin/logout/">logout</a></li>
+    <li><a href="/logout/">logout</a></li>
 </ul>
 <p>Your email addresses:</p>
 <ul>
@@ -25,6 +25,7 @@
 <p>Not logged in.</p>
 <ul>
     <li><a href="/signup/">signup</a></li>
+    <li><a href="/login/">login</a></li>
 </ul>
 {% endif %}
 {% endblock %}

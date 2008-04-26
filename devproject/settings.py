@@ -82,5 +82,7 @@ INSTALLED_APPS = (
     'devtest',
 )
 
+LOGIN_REDIRECT_URL = "/"
+
 EMAIL_CONFIRMATION_DAYS = 2
 # DEFAULT_FROM_EMAIL = "noreply@example.com"

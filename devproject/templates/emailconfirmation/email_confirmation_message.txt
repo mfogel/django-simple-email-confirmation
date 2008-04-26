@@ -1,0 +1,5 @@
+User {{ username }} at django-email-confirmation has given this as an email address.
+
+To confirm this is correct, click HERE.
+
+Thanks!

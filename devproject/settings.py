@@ -82,4 +82,5 @@ INSTALLED_APPS = (
     'devtest',
 )
 
+EMAIL_CONFIRMATION_DAYS = 2
 # DEFAULT_FROM_EMAIL = "noreply@example.com"

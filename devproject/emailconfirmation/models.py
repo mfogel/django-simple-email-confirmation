@@ -20,14 +20,35 @@ class EmailAddressManager(models.Manager):
             return email_address
         except IntegrityError:
             return None
+    
+    def get_primary(self, user):
+        try:
+            return self.get(user=user, primary=True)
+        except EmailAddress.DoesNotExist:
+            return None
+
 
 class EmailAddress(models.Model):
     
     user = models.ForeignKey(User)
     email = models.EmailField()
     verified = models.BooleanField(default=False)
+    primary = models.BooleanField(default=False)
     
     objects = EmailAddressManager()
+    
+    def set_as_primary(self, conditional=False):
+        old_primary = EmailAddress.objects.get_primary(self.user)
+        if old_primary:
+            if conditional:
+                return False
+            old_primary.primary = False
+            old_primary.save()
+        self.primary = True
+        self.save()
+        self.user.email = self.email
+        self.user.save()
+        return True
     
     def __unicode__(self):
         return u"%s (%s)" % (self.email, self.user)
@@ -51,6 +72,7 @@ class EmailConfirmationManager(models.Manager):
         if not confirmation.key_expired():
             email_address = confirmation.email_address
             email_address.verified = True
+            email_address.set_as_primary(conditional=True)
             email_address.save()
             return email_address
     
@@ -65,7 +87,6 @@ class EmailConfirmationManager(models.Manager):
         })
         # @@@ eventually use django-mailer
         send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email_address.email])
-        print "sent %s '%s' to %s" % (subject, message, email_address.email)
         
         return self.create(email_address=email_address, sent=datetime.now(), confirmation_key=confirmation_key)
     

@@ -86,7 +86,7 @@ class EmailConfirmationManager(models.Manager):
             "confirmation_key": confirmation_key,
         })
         # @@@ eventually use django-mailer
-        if settings.DEBUG:
+        if settings.EMAIL_DEBUG:
             print message
         else:
             send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email_address.email])

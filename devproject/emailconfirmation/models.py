@@ -4,7 +4,13 @@ import sha
 
 from django.db import models, IntegrityError
 from django.template.loader import render_to_string
-from django.core.mail import send_mail
+
+# favour django-mailer but fall back to django.core.mail
+try:
+    from mailer import send_mail
+except ImportError:
+    from django.core.mail import send_mail
+
 from django.conf import settings
 
 from django.contrib.auth.models import User
@@ -85,11 +91,7 @@ class EmailConfirmationManager(models.Manager):
             "user": email_address.user,
             "confirmation_key": confirmation_key,
         })
-        # @@@ eventually use django-mailer
-        if settings.EMAIL_DEBUG:
-            print message
-        else:
-            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email_address.email])
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email_address.email])
         
         return self.create(email_address=email_address, sent=datetime.now(), confirmation_key=confirmation_key)
     

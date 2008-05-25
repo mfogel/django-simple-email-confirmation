@@ -4,6 +4,8 @@ import sha
 
 from django.db import models, IntegrityError
 from django.template.loader import render_to_string
+from django.core.urlresolvers import reverse
+from django.contrib.sites.models import Site
 
 # favour django-mailer but fall back to django.core.mail
 try:
@@ -85,11 +87,15 @@ class EmailConfirmationManager(models.Manager):
     def send_confirmation(self, email_address):
         salt = sha.new(str(random())).hexdigest()[:5]
         confirmation_key = sha.new(salt + email_address.email).hexdigest()
+        activate_url = u"http://%s%s" % (
+            unicode(Site.objects.get_current()),
+            reverse("emailconfirmation.views.confirm_email", args=(confirmation_key,))
+        )
         
         subject = render_to_string("emailconfirmation/email_confirmation_subject.txt")
         message = render_to_string("emailconfirmation/email_confirmation_message.txt", {
             "user": email_address.user,
-            "confirmation_key": confirmation_key,
+            "activate_url": activate_url,
         })
         send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email_address.email])
         

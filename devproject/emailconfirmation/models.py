@@ -34,7 +34,14 @@ class EmailAddressManager(models.Manager):
             return self.get(user=user, primary=True)
         except EmailAddress.DoesNotExist:
             return None
-
+    
+    def get_users_for(self, email):
+        """
+        returns a list of users with the given email.
+        """
+        # this is a list rather than a generator because we probably want to do a len() on it right away
+        return [address.user for address in EmailAddress.objects.filter(verified=True, email=email)]
+    
 
 class EmailAddress(models.Model):
     

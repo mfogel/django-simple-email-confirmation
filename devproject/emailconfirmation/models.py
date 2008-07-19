@@ -72,9 +72,6 @@ class EmailAddress(models.Model):
         unique_together = (
             ("user", "email"),
         )
-    
-    class Admin:
-        pass
 
 
 class EmailConfirmationManager(models.Manager):
@@ -128,6 +125,3 @@ class EmailConfirmation(models.Model):
     
     def __unicode__(self):
         return u"confirmation for %s" % self.email_address
-    
-    class Admin:
-        pass

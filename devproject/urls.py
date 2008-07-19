@@ -1,4 +1,5 @@
 from django.conf.urls.defaults import *
+from django.contrib import admin
 
 urlpatterns = patterns('',
     
@@ -10,5 +11,5 @@ urlpatterns = patterns('',
     
     (r'^confirm_email/(\w+)/$', 'emailconfirmation.views.confirm_email'),
     
-    (r'^admin/', include('django.contrib.admin.urls')),
+    (r'^admin/(.*)', admin.site.root),
 )

@@ -108,7 +108,7 @@ class EmailConfirmationManager(models.Manager):
     def delete_expired_confirmations(self):
         for confirmation in self.all():
             if confirmation.key_expired():
-                confirmate.delete()
+                confirmation.delete()
 
 class EmailConfirmation(models.Model):
     

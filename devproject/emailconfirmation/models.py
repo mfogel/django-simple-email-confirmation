@@ -91,16 +91,19 @@ class EmailConfirmationManager(models.Manager):
     def send_confirmation(self, email_address):
         salt = sha.new(str(random())).hexdigest()[:5]
         confirmation_key = sha.new(salt + email_address.email).hexdigest()
+        current_site = Site.objects.get_current()
         activate_url = u"http://%s%s" % (
-            unicode(Site.objects.get_current()),
+            unicode(current_site.domain),
             reverse("emailconfirmation.views.confirm_email", args=(confirmation_key,))
         )
-        
-        subject = render_to_string("emailconfirmation/email_confirmation_subject.txt")
-        message = render_to_string("emailconfirmation/email_confirmation_message.txt", {
+        context = {
             "user": email_address.user,
             "activate_url": activate_url,
-        })
+            "current_site": current_site,
+            "confirmation_key": confirmation_key,
+        }
+        subject = render_to_string("emailconfirmation/email_confirmation_subject.txt", context)
+        message = render_to_string("emailconfirmation/email_confirmation_message.txt", context)
         send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email_address.email])
         
         return self.create(email_address=email_address, sent=datetime.now(), confirmation_key=confirmation_key)

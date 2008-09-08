@@ -1,3 +1,4 @@
-User '{{ user }}' at django-email-confirmation has given this as an email address.
+{% load i18n %}{% blocktrans with current_site.name as site_name %}User '{{ user }}' at {{ site_name }} has given this as an email address.
 
-To confirm this is correct, go to http://localhost:8001/confirm_email/{{ confirmation_key }}/ 
+To confirm this is correct, go to {{ activate_url }}
+{% endblocktrans %}

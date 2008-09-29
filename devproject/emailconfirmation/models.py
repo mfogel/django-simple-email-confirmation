@@ -2,20 +2,15 @@ from datetime import datetime, timedelta
 from random import random
 import sha
 
+from django.conf import settings
 from django.db import models, IntegrityError
 from django.template.loader import render_to_string
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import Site
-
-# favour django-mailer but fall back to django.core.mail
-try:
-    from mailer import send_mail
-except ImportError:
-    from django.core.mail import send_mail
-
-from django.conf import settings
-
 from django.contrib.auth.models import User
+
+from emailconfirmation.utils import get_send_mail
+send_mail = get_send_mail()
 
 # this code based in-part on django-registration
 

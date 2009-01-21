@@ -93,12 +93,12 @@ class EmailConfirmationManager(models.Manager):
         current_site = Site.objects.get_current()
         # check for the url with the dotted view path
         try:
-            path = reverse(
-                "emailconfirmation.views.confirm_email", [confirmation_key])
+            path = reverse("emailconfirmation.views.confirm_email",
+                args=[confirmation_key])
         except NoReverseMatch:
             # or get path with named urlconf instead
             path = reverse(
-                "emailconfirmation_confirm_email", [confirmation_key])
+                "emailconfirmation_confirm_email", args=[confirmation_key])
         activate_url = u"http://%s%s" % (unicode(current_site.domain), path)
         context = {
             "user": email_address.user,

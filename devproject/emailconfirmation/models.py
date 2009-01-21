@@ -8,6 +8,7 @@ from django.template.loader import render_to_string
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import User
+from django.utils.translation import gettext_lazy as _
 
 from emailconfirmation.utils import get_send_mail
 send_mail = get_send_mail()
@@ -64,6 +65,8 @@ class EmailAddress(models.Model):
         return u"%s (%s)" % (self.email, self.user)
     
     class Meta:
+        verbose_name = _("e-mail address")
+        verbose_name_plural = _("e-mail addresses")
         unique_together = (
             ("user", "email"),
         )
@@ -123,3 +126,7 @@ class EmailConfirmation(models.Model):
     
     def __unicode__(self):
         return u"confirmation for %s" % self.email_address
+
+    class Meta:
+        verbose_name = _("e-mail confirmation")
+        verbose_name_plural = _("e-mail confirmations")

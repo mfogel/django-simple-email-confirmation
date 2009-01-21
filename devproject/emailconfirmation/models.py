@@ -5,7 +5,7 @@ import sha
 from django.conf import settings
 from django.db import models, IntegrityError
 from django.template.loader import render_to_string
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, NoReverseMatch
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
@@ -91,11 +91,15 @@ class EmailConfirmationManager(models.Manager):
         salt = sha.new(str(random())).hexdigest()[:5]
         confirmation_key = sha.new(salt + email_address.email).hexdigest()
         current_site = Site.objects.get_current()
-        activate_url = u"http://%s%s" % (
-            unicode(current_site.domain),
-            reverse("emailconfirmation.views.confirm_email",
-                    args=(confirmation_key,))
-        )
+        # check for the url with the dotted view path
+        try:
+            path = reverse(
+                "emailconfirmation.views.confirm_email", [confirmation_key])
+        except NoReverseMatch:
+            # or get path with named urlconf instead
+            path = reverse(
+                "emailconfirmation_confirm_email", [confirmation_key])
+        activate_url = u"http://%s%s" % (unicode(current_site.domain), path)
         context = {
             "user": email_address.user,
             "activate_url": activate_url,
@@ -106,14 +110,13 @@ class EmailConfirmationManager(models.Manager):
             "emailconfirmation/email_confirmation_subject.txt", context)
         # remove superfluous line breaks
         subject = "".join(subject.splitlines())
-
         message = render_to_string(
             "emailconfirmation/email_confirmation_message.txt", context)
-
         send_mail(subject, message, settings.DEFAULT_FROM_EMAIL,
                   [email_address.email], priority="high")
-
-        return self.create(email_address=email_address, sent=datetime.now(),
+        return self.create(
+            email_address=email_address,
+            sent=datetime.now(),
             confirmation_key=confirmation_key)
 
     def delete_expired_confirmations(self):

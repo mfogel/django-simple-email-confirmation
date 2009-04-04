@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 from random import random
-import sha
 
 from django.conf import settings
 from django.db import models, IntegrityError
@@ -8,6 +7,7 @@ from django.template.loader import render_to_string
 from django.core.urlresolvers import reverse, NoReverseMatch
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import User
+from django.utils.hashcompat import sha_constructor
 from django.utils.translation import gettext_lazy as _
 
 from emailconfirmation.utils import get_send_mail
@@ -88,8 +88,8 @@ class EmailConfirmationManager(models.Manager):
             return email_address
 
     def send_confirmation(self, email_address):
-        salt = sha.new(str(random())).hexdigest()[:5]
-        confirmation_key = sha.new(salt + email_address.email).hexdigest()
+        salt = sha_constructor.new(str(random())).hexdigest()[:5]
+        confirmation_key = sha_constructor.new(salt + email_address.email).hexdigest()
         current_site = Site.objects.get_current()
         # check for the url with the dotted view path
         try:

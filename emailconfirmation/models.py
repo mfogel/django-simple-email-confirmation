@@ -88,8 +88,8 @@ class EmailConfirmationManager(models.Manager):
             return email_address
 
     def send_confirmation(self, email_address):
-        salt = sha_constructor.new(str(random())).hexdigest()[:5]
-        confirmation_key = sha_constructor.new(salt + email_address.email).hexdigest()
+        salt = sha_constructor(str(random())).hexdigest()[:5]
+        confirmation_key = sha_constructor(salt + email_address.email).hexdigest()
         current_site = Site.objects.get_current()
         # check for the url with the dotted view path
         try:

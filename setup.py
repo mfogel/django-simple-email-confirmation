@@ -2,12 +2,13 @@ from setuptools import setup, find_packages
  
 setup(
     name='django-email-confirmation',
-    version='0.1.0',
+    version='0.1.1',
     description='Simple email confirmation for the Django web framework.',
+    long_description=open('docs/index.txt').read(),
     author='James Tauber',
     author_email='jtauber@jtauber.com',
     url='http://code.google.com/p/django-email-confirmation/',
-    packages=find_packages(),
+    packages=find_packages(exclude=['devproject.devtest', 'devproject']),
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Web Environment',

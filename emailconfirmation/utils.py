@@ -1,4 +1,3 @@
-
 from django.conf import settings
 
 def get_send_mail():

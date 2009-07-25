@@ -10,6 +10,7 @@ from django.contrib.auth.models import User
 from django.utils.hashcompat import sha_constructor
 from django.utils.translation import gettext_lazy as _
 
+from emailconfirmation.signals import email_confirmed
 from emailconfirmation.utils import get_send_mail
 send_mail = get_send_mail()
 
@@ -85,6 +86,7 @@ class EmailConfirmationManager(models.Manager):
             email_address.verified = True
             email_address.set_as_primary(conditional=True)
             email_address.save()
+            email_confirmed.send(sender=self.model, email_address=email_address)
             return email_address
 
     def send_confirmation(self, email_address):

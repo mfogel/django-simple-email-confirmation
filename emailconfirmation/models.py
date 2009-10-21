@@ -101,7 +101,12 @@ class EmailConfirmationManager(models.Manager):
             # or get path with named urlconf instead
             path = reverse(
                 "emailconfirmation_confirm_email", args=[confirmation_key])
-        activate_url = u"http://%s%s" % (unicode(current_site.domain), path)
+        protocol = getattr(settings, "DEFAULT_HTTP_PROTOCOL", "http")
+        activate_url = u"%s://%s%s" % (
+            protocol,
+            unicode(current_site.domain),
+            path
+        )
         context = {
             "user": email_address.user,
             "activate_url": activate_url,

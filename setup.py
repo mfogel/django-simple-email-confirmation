@@ -2,8 +2,8 @@ from setuptools import setup, find_packages
  
 setup(
     name='django-email-confirmation',
-    version='0.2.dev1',
-    description='Simple email confirmation for the Django web framework.',
+    version='0.2.dev2',
+    description='Simple e-mail confirmation for the Django web framework.',
     long_description=open('docs/index.txt').read(),
     author='James Tauber',
     author_email='jtauber@jtauber.com',

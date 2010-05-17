@@ -29,7 +29,7 @@ def homepage(request):
             email = request.POST["email"]
             try:
                 email_address = EmailAddress.objects.get(user=request.user, email=email)
-                request.user.message_set.create(message="Confirmation email sent to %s" % email)
+                request.user.message_set.create(message="Confirmation e-mail sent to %s" % email)
                 EmailConfirmation.objects.send_confirmation(email_address)
             except EmailAddress.DoesNotExist:
                 pass

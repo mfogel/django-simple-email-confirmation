@@ -2,15 +2,15 @@
 django-email-confirmation
 #########################
 
-This simple app is for cases where you don't want to require an email
+This simple app is for cases where you don't want to require an e-mail
 address to signup on your website but you do still want to ask for an
-email address and be able to confirm it for use in optional parts of
+e-mail address and be able to confirm it for use in optional parts of
 your website.
 
-A user can have zero or more email addresses linked to them. The user
-does not have to provide an email address on signup but, if they do,
-they are emailed with a link they must click on to confirm that the
-email address is theirs. A confirmation email can be resent at any
+A user can have zero or more e-mail addresses linked to them. The user
+does not have to provide an e-mail address on signup but, if they do,
+they are e-mailed with a link they must click on to confirm that the
+e-mail address is theirs. A confirmation e-mail can be resent at any
 time.
 
 What's on the trunk here should be usable but I welcome feedback on how

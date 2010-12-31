@@ -11,7 +11,7 @@ class SignupForm(forms.Form):
     username = forms.CharField(label="Username", max_length=30, widget=forms.TextInput())
     password1 = forms.CharField(label="Password", widget=forms.PasswordInput())
     password2 = forms.CharField(label="Password (again)", widget=forms.PasswordInput())
-    email = forms.EmailField(label="Email (optional)", required=False, widget=forms.TextInput())
+    email = forms.EmailField(label="E-mail (optional)", required=False, widget=forms.TextInput())
     
     def clean_username(self):
         if not alnum_re.search(self.cleaned_data["username"]):
@@ -35,7 +35,7 @@ class SignupForm(forms.Form):
         password = self.cleaned_data["password1"]
         new_user = User.objects.create_user(username, email, password)
         if email:
-            self.user.message_set.create(message="Confirmation email sent to %s" % email)
+            self.user.message_set.create(message="Confirmation e-mail sent to %s" % email)
             EmailAddress.objects.add_email(new_user, email)
         return username, password # required for authenticate()
 
@@ -53,9 +53,9 @@ class AddEmailForm(forms.Form):
             EmailAddress.objects.get(user=self.user, email=self.cleaned_data["email"])
         except EmailAddress.DoesNotExist:
             return self.cleaned_data["email"]
-        raise forms.ValidationError(u"This email address already associated with this account.")
+        raise forms.ValidationError(u"This e-mail address already associated with this account.")
     
     def save(self):
-        self.user.message_set.create(message="Confirmation email sent to %s" % self.cleaned_data["email"])
+        self.user.message_set.create(message="Confirmation e-mail sent to %s" % self.cleaned_data["email"])
         return EmailAddress.objects.add_email(self.user, self.cleaned_data["email"])
         

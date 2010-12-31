@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+import datetime
 from random import random
 
 from django.conf import settings
@@ -17,7 +17,7 @@ from emailconfirmation.signals import email_confirmed
 # this code based in-part on django-registration
 
 class EmailAddressManager(models.Manager):
-
+    
     def add_email(self, user, email):
         try:
             email_address = self.create(user=user, email=email)
@@ -25,13 +25,13 @@ class EmailAddressManager(models.Manager):
             return email_address
         except IntegrityError:
             return None
-
+    
     def get_primary(self, user):
         try:
             return self.get(user=user, primary=True)
         except EmailAddress.DoesNotExist:
             return None
-
+    
     def get_users_for(self, email):
         """
         returns a list of users with the given email.
@@ -41,15 +41,16 @@ class EmailAddressManager(models.Manager):
         return [address.user for address in EmailAddress.objects.filter(
             verified=True, email=email)]
 
-class EmailAddress(models.Model):
 
+class EmailAddress(models.Model):
+    
     user = models.ForeignKey(User)
     email = models.EmailField()
     verified = models.BooleanField(default=False)
     primary = models.BooleanField(default=False)
-
+    
     objects = EmailAddressManager()
-
+    
     def set_as_primary(self, conditional=False):
         old_primary = EmailAddress.objects.get_primary(self.user)
         if old_primary:
@@ -62,10 +63,10 @@ class EmailAddress(models.Model):
         self.user.email = self.email
         self.user.save()
         return True
-
+    
     def __unicode__(self):
         return u"%s (%s)" % (self.email, self.user)
-
+    
     class Meta:
         verbose_name = _("e-mail address")
         verbose_name_plural = _("e-mail addresses")
@@ -75,7 +76,7 @@ class EmailAddress(models.Model):
 
 
 class EmailConfirmationManager(models.Manager):
-
+    
     def confirm_email(self, confirmation_key):
         try:
             confirmation = self.get(confirmation_key=confirmation_key)
@@ -88,7 +89,7 @@ class EmailConfirmationManager(models.Manager):
             email_address.save()
             email_confirmed.send(sender=self.model, email_address=email_address)
             return email_address
-
+    
     def send_confirmation(self, email_address):
         salt = sha_constructor(str(random())).hexdigest()[:5]
         confirmation_key = sha_constructor(salt + email_address.email).hexdigest()
@@ -122,31 +123,32 @@ class EmailConfirmationManager(models.Manager):
         send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email_address.email])
         return self.create(
             email_address=email_address,
-            sent=datetime.now(),
+            sent=datetime.datetime.now(),
             confirmation_key=confirmation_key)
-
+    
     def delete_expired_confirmations(self):
         for confirmation in self.all():
             if confirmation.key_expired():
                 confirmation.delete()
 
-class EmailConfirmation(models.Model):
 
+class EmailConfirmation(models.Model):
+    
     email_address = models.ForeignKey(EmailAddress)
     sent = models.DateTimeField()
     confirmation_key = models.CharField(max_length=40)
-
+    
     objects = EmailConfirmationManager()
-
+    
     def key_expired(self):
-        expiration_date = self.sent + timedelta(
+        expiration_date = self.sent + datetime.timedelta(
             days=settings.EMAIL_CONFIRMATION_DAYS)
-        return expiration_date <= datetime.now()
+        return expiration_date <= datetime.datetime.now()
     key_expired.boolean = True
-
+    
     def __unicode__(self):
         return u"confirmation for %s" % self.email_address
-
+    
     class Meta:
         verbose_name = _("e-mail confirmation")
         verbose_name_plural = _("e-mail confirmations")

@@ -12,7 +12,7 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import User
 
-from emailconfirmation.signals import email_confirmed
+from emailconfirmation.signals import email_confirmed, email_confirmation_sent
 
 # this code based in-part on django-registration
 
@@ -121,10 +121,16 @@ class EmailConfirmationManager(models.Manager):
         message = render_to_string(
             "emailconfirmation/email_confirmation_message.txt", context)
         send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email_address.email])
-        return self.create(
+        confirmation = self.create(
             email_address=email_address,
             sent=datetime.datetime.now(),
-            confirmation_key=confirmation_key)
+            confirmation_key=confirmation_key
+        )
+        email_confirmation_sent.send(
+            sender=self.model,
+            confirmation=confirmation,
+        )
+        return confirmation
     
     def delete_expired_confirmations(self):
         for confirmation in self.all():

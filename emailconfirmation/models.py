@@ -68,8 +68,8 @@ class EmailAddress(models.Model):
         return u"%s (%s)" % (self.email, self.user)
     
     class Meta:
-        verbose_name = _("e-mail address")
-        verbose_name_plural = _("e-mail addresses")
+        verbose_name = _("email address")
+        verbose_name_plural = _("email addresses")
         unique_together = (
             ("user", "email"),
         )
@@ -156,5 +156,5 @@ class EmailConfirmation(models.Model):
         return u"confirmation for %s" % self.email_address
     
     class Meta:
-        verbose_name = _("e-mail confirmation")
-        verbose_name_plural = _("e-mail confirmations")
+        verbose_name = _("email confirmation")
+        verbose_name_plural = _("email confirmations")

@@ -14,6 +14,11 @@ from django.contrib.auth.models import User
 
 from emailconfirmation.signals import email_confirmed, email_confirmation_sent
 
+try:
+    from django.utils.timezone import now
+except ImportError:
+    now = datetime.datetime.now
+
 # this code based in-part on django-registration
 
 class EmailAddressManager(models.Manager):
@@ -123,7 +128,7 @@ class EmailConfirmationManager(models.Manager):
         send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email_address.email])
         confirmation = self.create(
             email_address=email_address,
-            sent=datetime.datetime.now(),
+            sent=now(),
             confirmation_key=confirmation_key
         )
         email_confirmation_sent.send(
@@ -149,7 +154,7 @@ class EmailConfirmation(models.Model):
     def key_expired(self):
         expiration_date = self.sent + datetime.timedelta(
             days=settings.EMAIL_CONFIRMATION_DAYS)
-        return expiration_date <= datetime.datetime.now()
+        return expiration_date <= now()
     key_expired.boolean = True
     
     def __unicode__(self):

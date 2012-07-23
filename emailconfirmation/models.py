@@ -174,8 +174,9 @@ class EmailConfirmation(models.Model):
     objects = EmailConfirmationManager()
     
     def key_expired(self):
+        confirmation_days = getattr(settings, 'EMAIL_CONFIRMATION_DAYS', 7)
         expiration_date = self.created_at + datetime.timedelta(
-            days=settings.EMAIL_CONFIRMATION_DAYS)
+                days=confirmation_days)
         return expiration_date <= now()
     key_expired.boolean = True
     

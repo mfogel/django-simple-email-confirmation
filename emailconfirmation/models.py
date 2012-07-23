@@ -66,6 +66,8 @@ class EmailAddress(models.Model):
         self.primary = True
         self.save()
         self.user.email = self.email
+        if getattr(settings, 'EMAIL_CONFIRMATION_OVERWRITE_USERNAME', False):
+            self.user.username = self.email
         self.user.save()
         return True
     

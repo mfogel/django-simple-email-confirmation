@@ -9,7 +9,7 @@ setup(
     author="James Tauber",
     author_email="jtauber@jtauber.com",
     url="https://github.com/jtauber/django-email-confirmation",
-    packages=find_packages(exclude=["devproject.devtest", "devproject"]),
+    packages=find_packages(),
     package_data = {
         "emailconfirmation": [
             "templates/emailconfirmation/*.txt"

@@ -106,13 +106,13 @@ class EmailConfirmationManager(models.Manager):
         confirmation = self.create(
             email_address=email_address,
             created_at=now(),
-            confirmation_key=confirmation_key
+            key=confirmation_key,
         )
         return confirmation
     
-    def confirm_email(self, confirmation_key):
+    def confirm_email(self, key):
         try:
-            confirmation = self.get(confirmation_key=confirmation_key)
+            confirmation = self.get(key=key)
         except self.model.DoesNotExist:
             return None
         if not confirmation.key_expired():
@@ -129,11 +129,11 @@ class EmailConfirmationManager(models.Manager):
         # check for the url with the dotted view path
         try:
             path = reverse("emailconfirmation.views.confirm_email",
-                args=[confirmation.confirmation_key])
+                args=[confirmation.key])
         except NoReverseMatch:
             # or get path with named urlconf instead
             path = reverse(
-                "emailconfirmation_confirm_email", args=[confirmation.confirmation_key])
+                "emailconfirmation_confirm_email", args=[confirmation.key])
         protocol = getattr(settings, "DEFAULT_HTTP_PROTOCOL", "http")
         activate_url = u"%s://%s%s" % (
             protocol,
@@ -144,7 +144,7 @@ class EmailConfirmationManager(models.Manager):
             "user": email_address.user,
             "activate_url": activate_url,
             "current_site": current_site,
-            "confirmation_key": confirmation.confirmation_key,
+            "confirmation_key": confirmation.key,
         }
         subject = render_to_string(
             "emailconfirmation/email_confirmation_subject.txt", context)
@@ -169,7 +169,7 @@ class EmailConfirmation(models.Model):
     
     email_address = models.ForeignKey(EmailAddress)
     created_at = models.DateTimeField()
-    confirmation_key = models.CharField(max_length=40)
+    key = models.CharField(max_length=40)
     
     objects = EmailConfirmationManager()
     

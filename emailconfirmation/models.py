@@ -108,9 +108,12 @@ class EmailConfirmationManager(models.Manager):
         )
         return confirmation
     
-    def confirm_email(self, key, make_primary=True):
+    def confirm_email(self, key, user=None, make_primary=True):
+        queryset = self.all()
+        if user:
+            queryset = queryset.filter(email_address__user=user)
         try:
-            confirmation = self.get(key=key)
+            confirmation = queryset.get(key=key)
         except self.model.DoesNotExist:
             return None
         if not confirmation.key_expired():

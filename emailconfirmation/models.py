@@ -56,11 +56,9 @@ class EmailAddress(models.Model):
     
     objects = EmailAddressManager()
     
-    def set_as_primary(self, conditional=False):
+    def set_as_primary(self):
         old_primary = EmailAddress.objects.get_primary(self.user)
         if old_primary:
-            if conditional:
-                return False
             old_primary.primary = False
             old_primary.save()
         self.primary = True
@@ -110,7 +108,7 @@ class EmailConfirmationManager(models.Manager):
         )
         return confirmation
     
-    def confirm_email(self, key):
+    def confirm_email(self, key, make_primary=True):
         try:
             confirmation = self.get(key=key)
         except self.model.DoesNotExist:
@@ -118,7 +116,8 @@ class EmailConfirmationManager(models.Manager):
         if not confirmation.key_expired():
             email_address = confirmation.email_address
             email_address.verified = True
-            email_address.set_as_primary(conditional=True)
+            if make_primary:
+                email_address.set_as_primary()
             email_address.save()
             email_confirmed.send(sender=self.model, email_address=email_address)
             return email_address

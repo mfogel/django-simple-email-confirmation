@@ -83,6 +83,22 @@ class EmailAddress(models.Model):
 
 
 class EmailConfirmationManager(models.Manager):
+
+    def generate_key(self, email):
+        """
+        Generate a new email confirmation key and return it.
+
+        The key is a hash of:
+           * time specific data
+           * the email address it's being generated for
+           * a random salt.
+        """
+        payload = ''.join([
+            str(now()),
+            str(email),
+            sha_constructor(str(random())).hexdigest(),
+        ])
+        return sha_constructor(payload).hexdigest()
     
     def confirm_email(self, confirmation_key):
         try:
@@ -98,8 +114,7 @@ class EmailConfirmationManager(models.Manager):
             return email_address
     
     def send_confirmation(self, email_address):
-        salt = sha_constructor(str(random())).hexdigest()[:5]
-        confirmation_key = sha_constructor(salt + email_address.email).hexdigest()
+        confirmation_key = self.generate_key(email_address.email)
         current_site = Site.objects.get_current()
         # check for the url with the dotted view path
         try:

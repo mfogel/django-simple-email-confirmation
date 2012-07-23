@@ -99,6 +99,16 @@ class EmailConfirmationManager(models.Manager):
             sha_constructor(str(random())).hexdigest(),
         ])
         return sha_constructor(payload).hexdigest()
+
+    def create_emailconfirmation(self, email_address):
+        "Create an email confirmation obj from the given email address obj"
+        confirmation_key = self.generate_key(email_address.email)
+        confirmation = self.create(
+            email_address=email_address,
+            sent=now(),
+            confirmation_key=confirmation_key
+        )
+        return confirmation
     
     def confirm_email(self, confirmation_key):
         try:
@@ -114,16 +124,16 @@ class EmailConfirmationManager(models.Manager):
             return email_address
     
     def send_confirmation(self, email_address):
-        confirmation_key = self.generate_key(email_address.email)
+        confirmation = self.create_email_confirmation(email_address)
         current_site = Site.objects.get_current()
         # check for the url with the dotted view path
         try:
             path = reverse("emailconfirmation.views.confirm_email",
-                args=[confirmation_key])
+                args=[confirmation.confirmation_key])
         except NoReverseMatch:
             # or get path with named urlconf instead
             path = reverse(
-                "emailconfirmation_confirm_email", args=[confirmation_key])
+                "emailconfirmation_confirm_email", args=[confirmation.confirmation_key])
         protocol = getattr(settings, "DEFAULT_HTTP_PROTOCOL", "http")
         activate_url = u"%s://%s%s" % (
             protocol,
@@ -134,7 +144,7 @@ class EmailConfirmationManager(models.Manager):
             "user": email_address.user,
             "activate_url": activate_url,
             "current_site": current_site,
-            "confirmation_key": confirmation_key,
+            "confirmation_key": confirmation.confirmation_key,
         }
         subject = render_to_string(
             "emailconfirmation/email_confirmation_subject.txt", context)
@@ -143,11 +153,6 @@ class EmailConfirmationManager(models.Manager):
         message = render_to_string(
             "emailconfirmation/email_confirmation_message.txt", context)
         send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email_address.email])
-        confirmation = self.create(
-            email_address=email_address,
-            sent=now(),
-            confirmation_key=confirmation_key
-        )
         email_confirmation_sent.send(
             sender=self.model,
             confirmation=confirmation,

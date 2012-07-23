@@ -105,7 +105,7 @@ class EmailConfirmationManager(models.Manager):
         confirmation_key = self.generate_key(email_address.email)
         confirmation = self.create(
             email_address=email_address,
-            sent=now(),
+            created_at=now(),
             confirmation_key=confirmation_key
         )
         return confirmation
@@ -168,13 +168,13 @@ class EmailConfirmationManager(models.Manager):
 class EmailConfirmation(models.Model):
     
     email_address = models.ForeignKey(EmailAddress)
-    sent = models.DateTimeField()
+    created_at = models.DateTimeField()
     confirmation_key = models.CharField(max_length=40)
     
     objects = EmailConfirmationManager()
     
     def key_expired(self):
-        expiration_date = self.sent + datetime.timedelta(
+        expiration_date = self.created_at + datetime.timedelta(
             days=settings.EMAIL_CONFIRMATION_DAYS)
         return expiration_date <= now()
     key_expired.boolean = True

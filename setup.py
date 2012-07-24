@@ -5,7 +5,7 @@ setup(
     name="django-email-confirmation",
     version="0.2",
     description="Simple email confirmation for the Django web framework.",
-    long_description=open("docs/index.txt").read(),
+    long_description=open("README.txt").read(),
     author="James Tauber",
     author_email="jtauber@jtauber.com",
     url="https://github.com/jtauber/django-email-confirmation",

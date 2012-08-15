@@ -3,5 +3,11 @@ from django.contrib import admin
 from emailconfirmation.models import EmailAddress, EmailConfirmation
 
 
-admin.site.register(EmailAddress)
-admin.site.register(EmailConfirmation)
+class EmailAddressAdmin(admin.ModelAdmin):
+    list_display = ('__unicode__', 'verified', 'primary')
+
+class EmailConfirmationAdmin(admin.ModelAdmin):
+    list_display = ('__unicode__', 'key_expired')
+
+admin.site.register((EmailAddress,), EmailAddressAdmin)
+admin.site.register((EmailConfirmation,), EmailConfirmationAdmin)

@@ -31,7 +31,15 @@ class EmailAddressManager(models.Manager):
         except IntegrityError:
             return None
     
-    def get_primary(self, user):
+    def get_primary(self, user=None):
+        # if we're a related_manager, use the User object we're attached to
+        inst = getattr(self, 'instance', None)
+        if not user and not inst:
+            raise ValueError("Must specify a User")
+        if user and inst and user != inst:
+            raise ValueError("Cannot specify a different User")
+        user = user or inst
+
         try:
             return self.get(user=user, primary=True)
         except EmailAddress.DoesNotExist:

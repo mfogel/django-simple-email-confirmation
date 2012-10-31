@@ -134,7 +134,7 @@ class EmailConfirmationManager(models.Manager):
             return email_address
     
     def send_confirmation(self, email_address):
-        confirmation = self.create_email_confirmation(email_address)
+        confirmation = self.create_emailconfirmation(email_address)
         current_site = Site.objects.get_current()
         # check for the url with the dotted view path
         try:

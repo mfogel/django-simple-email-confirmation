@@ -71,10 +71,19 @@ class EmailAddress(models.Model):
             old_primary.save()
         self.primary = True
         self.save()
+
         self.user.email = self.email
+        update_fields = ['email']
         if getattr(settings, 'EMAIL_CONFIRMATION_OVERWRITE_USERNAME', False):
             self.user.username = self.email
-        self.user.save()
+            update_fields.append('username')
+        try:
+            # django 1.5+
+            # necessary because of more aggresive related model caching
+            self.user.save(update_fields=update_fields)
+        except TypeError:
+            self.user.save()
+
         return True
     
     def __unicode__(self):
@@ -134,7 +143,7 @@ class EmailConfirmationManager(models.Manager):
             return email_address
     
     def send_confirmation(self, email_address):
-        confirmation = self.create_emailconfirmation(email_address)
+        confirmation = self.create_email_confirmation(email_address)
         current_site = Site.objects.get_current()
         # check for the url with the dotted view path
         try:

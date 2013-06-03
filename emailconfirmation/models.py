@@ -10,7 +10,6 @@ from django.utils.hashcompat import sha_constructor
 from django.utils.translation import gettext_lazy as _
 
 from django.contrib.sites.models import Site
-from django.contrib.auth.models import User
 
 from emailconfirmation.signals import email_confirmed, email_confirmation_sent
 
@@ -18,6 +17,12 @@ try:
     from django.utils.timezone import now
 except ImportError:
     now = datetime.datetime.now
+
+try:
+    User = settings.AUTH_USER_MODEL
+except AttributeError:
+    from django.contrib.auth.models import User
+
 
 # this code based in-part on django-registration
 

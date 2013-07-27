@@ -1,13 +1,13 @@
 from django.contrib import admin
 
-from emailconfirmation.models import EmailAddress, EmailConfirmation
+from .models import EmailAddress, EmailConfirmation
 
 
 class EmailAddressAdmin(admin.ModelAdmin):
-    list_display = ('__unicode__', 'verified', 'primary')
+    list_display = ('__unicode__', 'user', 'is_primary')
 
 class EmailConfirmationAdmin(admin.ModelAdmin):
-    list_display = ('__unicode__', 'key_expired')
+    list_display = ('__unicode__', 'key', 'created_at', 'confirmed_at')
 
 admin.site.register((EmailAddress,), EmailAddressAdmin)
 admin.site.register((EmailConfirmation,), EmailConfirmationAdmin)

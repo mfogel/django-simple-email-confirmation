@@ -1,5 +1,4 @@
 from django.dispatch import Signal
 
-
-email_confirmed = Signal(providing_args=["email_address"])
-email_confirmation_sent = Signal(providing_args=["confirmation"])
+email_address_confirmed = Signal(providing_args=['email_address'])
+primary_email_address_changed = Signal(providing_args=['email_address'])

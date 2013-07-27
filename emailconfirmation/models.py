@@ -1,22 +1,12 @@
 import datetime
-from random import random
+import random
 
 from django.conf import settings
-from django.db import models, IntegrityError
-from django.core.mail import send_mail
-from django.core.urlresolvers import reverse, NoReverseMatch
-from django.template.loader import render_to_string
+from django.db import models
 from django.utils.hashcompat import sha_constructor
-from django.utils.translation import gettext_lazy as _
+from django.utils.timezone import now
 
-from django.contrib.sites.models import Site
-
-from emailconfirmation.signals import email_confirmed, email_confirmation_sent
-
-try:
-    from django.utils.timezone import now
-except ImportError:
-    now = datetime.datetime.now
+from .signals import email_confirmed, primary_email_address_changed
 
 try:
     User = settings.AUTH_USER_MODEL
@@ -24,189 +14,101 @@ except AttributeError:
     from django.contrib.auth.models import User
 
 
-# this code based in-part on django-registration
-
-class EmailAddressManager(models.Manager):
-    
-    def add_email(self, user, email):
-        try:
-            email_address = self.create(user=user, email=email)
-            EmailConfirmation.objects.send_confirmation(email_address)
-            return email_address
-        except IntegrityError:
-            return None
-    
-    def get_primary(self, user=None):
-        # if we're a related_manager, use the User object we're attached to
-        inst = getattr(self, 'instance', None)
-        if not user and not inst:
-            raise ValueError("Must specify a User")
-        if user and inst and user != inst:
-            raise ValueError("Cannot specify a different User")
-        user = user or inst
-
-        try:
-            return self.get(user=user, primary=True)
-        except EmailAddress.DoesNotExist:
-            return None
-    
-    def get_users_for(self, email):
-        """
-        returns a list of users with the given email.
-        """
-        # this is a list rather than a generator because we probably want to
-        # do a len() on it right away
-        return [address.user for address in EmailAddress.objects.filter(
-            verified=True, email=email)]
-
-
 class EmailAddress(models.Model):
+    "An email address belonging to a User"
     
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, related_name='email_address_set')
     email = models.EmailField()
-    verified = models.BooleanField(default=False)
-    primary = models.BooleanField(default=False)
+    is_primary = models.BooleanField(default=False)
     
-    objects = EmailAddressManager()
+    @property
+    def is_confirmed(self):
+        return self.email_confirmation_set.filter(is_confirmed=True).exists()
     
-    def set_as_primary(self):
-        old_primary = EmailAddress.objects.get_primary(self.user)
-        if old_primary:
-            old_primary.primary = False
-            old_primary.save()
-        self.primary = True
-        self.save()
+    def set_primary(self):
+        # set all others to is_primary=False
+        other_primaries = (
+            self.user.email_address_set.filter(is_primary=True)
+            .exclude(pk=self.pk)
+        )
+        for other in other_primaries:
+            other.is_primary = False
+            other.save()
 
-        self.user.email = self.email
-        update_fields = ['email']
-        if getattr(settings, 'EMAIL_CONFIRMATION_OVERWRITE_USERNAME', False):
-            self.user.username = self.email
-            update_fields.append('username')
-        try:
-            # django 1.5+
-            # necessary because of more aggresive related model caching
-            self.user.save(update_fields=update_fields)
-        except TypeError:
-            self.user.save()
-
-        return True
+        # set ourselves to is_primary=True (if necessary)
+        if not self.is_primary:
+            self.is_primary = True
+            self.save()
+            primary_email_address_changed.send(
+                sender=self.model, email_address=email_address,
+            )
     
     def __unicode__(self):
-        return u"%s (%s)" % (self.email, self.user)
+        return u'%s (%s)' % (self.email, self.user)
     
     class Meta:
-        verbose_name = _("email address")
-        verbose_name_plural = _("email addresses")
         unique_together = (
-            ("user", "email"),
+            ('user', 'email'),
         )
 
 
 class EmailConfirmationManager(models.Manager):
 
-    def generate_key(self, email):
-        """
-        Generate a new email confirmation key and return it.
+    def generate_key(self):
+        "Generate a new random key and return it"
+        return sha_constructor(str(random.random())).hexdigest()
 
-        The key is a hash of:
-           * time specific data
-           * the email address it's being generated for
-           * a random salt.
-        """
-        payload = ''.join([
-            str(now()),
-            str(email),
-            sha_constructor(str(random())).hexdigest(),
-        ])
-        return sha_constructor(payload).hexdigest()
-
-    def create_emailconfirmation(self, email_address):
+    def create_emailconfirmation(self, email_address=None):
         "Create an email confirmation obj from the given email address obj"
-        confirmation_key = self.generate_key(email_address.email)
+        email_address = email_address or self.instance
+        key = self.generate_key()
         confirmation = self.create(
-            email_address=email_address,
-            created_at=now(),
-            key=confirmation_key,
+            email_address=email_address, created_at=now(), key=key,
         )
         return confirmation
     
-    def confirm_email(self, key, user=None, make_primary=True):
+    def confirm(self, key, user=None, make_primary=True):
+        """
+        Confirm an email address.
+        Raises exception in various failure states.
+        """
         queryset = self.all()
         if user:
             queryset = queryset.filter(email_address__user=user)
-        try:
-            confirmation = queryset.get(key=key)
-        except self.model.DoesNotExist:
-            return None
-        if not confirmation.key_expired():
-            email_address = confirmation.email_address
-            email_address.verified = True
-            if make_primary:
-                email_address.set_as_primary()
+        confirmation = queryset.get(key=key)
+
+        if confirmation.is_key_expired:
+            raise EmailConfirmationExpired()
+
+        confirmation.confirmed_at = now()
+        confirmation.save()
+        email_confirmed.send(sender=self.model, email_address=email_address)
+
+        if make_primary:
+            email_address.set_primary()
             email_address.save()
-            email_confirmed.send(sender=self.model, email_address=email_address)
-            return email_address
-    
-    def send_confirmation(self, email_address):
-        confirmation = self.create_emailconfirmation(email_address)
-        current_site = Site.objects.get_current()
-        # check for the url with the dotted view path
-        try:
-            path = reverse("emailconfirmation.views.confirm_email",
-                args=[confirmation.key])
-        except NoReverseMatch:
-            # or get path with named urlconf instead
-            path = reverse(
-                "emailconfirmation_confirm_email", args=[confirmation.key])
-        protocol = getattr(settings, "DEFAULT_HTTP_PROTOCOL", "http")
-        activate_url = u"%s://%s%s" % (
-            protocol,
-            unicode(current_site.domain),
-            path
-        )
-        context = {
-            "user": email_address.user,
-            "activate_url": activate_url,
-            "current_site": current_site,
-            "confirmation_key": confirmation.key,
-        }
-        subject = render_to_string(
-            "emailconfirmation/email_confirmation_subject.txt", context)
-        # remove superfluous line breaks
-        subject = "".join(subject.splitlines())
-        message = render_to_string(
-            "emailconfirmation/email_confirmation_message.txt", context)
-        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email_address.email])
-        email_confirmation_sent.send(
-            sender=self.model,
-            confirmation=confirmation,
-        )
-        return confirmation
-    
-    def delete_expired_confirmations(self):
-        for confirmation in self.all():
-            if confirmation.key_expired():
-                confirmation.delete()
 
 
 class EmailConfirmation(models.Model):
+    "The token used to confirm an email address"
     
-    email_address = models.ForeignKey(EmailAddress)
+    email_address = models.ForeignKey(
+        EmailAddress, related_name='email_confirmation_set',
+    )
+    key = models.CharField(max_length=40, unique=True)
     created_at = models.DateTimeField()
-    key = models.CharField(max_length=40)
+    confirmed_at = models.DateTimeField()
     
     objects = EmailConfirmationManager()
     
-    def key_expired(self):
-        confirmation_days = getattr(settings, 'EMAIL_CONFIRMATION_DAYS', 7)
-        expiration_date = self.created_at + datetime.timedelta(
-                days=confirmation_days)
-        return expiration_date <= now()
-    key_expired.boolean = True
+    def is_key_expired(self):
+        # by default, confirmations don't expire.
+        # You can set settings.EMAIL_CONFIRMATION_DAYS if you want them to.
+        days = getattr(settings, 'EMAIL_CONFIRMATION_DAYS', None)
+        if days:
+            expiration = self.created_at + datetime.timedelta(days=days)
+            return expiration <= now()
+        return False
     
     def __unicode__(self):
-        return u"confirmation for %s" % self.email_address
-    
-    class Meta:
-        verbose_name = _("email confirmation")
-        verbose_name_plural = _("email confirmations")
+        return u'Confirmation for %s' % self.email_address

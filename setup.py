@@ -19,14 +19,14 @@ def find_version(*file_paths):
 
 setup(
     name='django-simple-email-confirmation',
-    version=find_version('emailconfirmation', '__init__.py'),
+    version=find_version('simpleemailconfirmation', '__init__.py'),
     author='Mike Fogel',
     author_email='mike@fogel.ca',
     description="Simple email confirmation for django.",
     long_description=read('README.rst'),
     url='https://github.com/mfogel/django-simple-email-confirmation',
     license='BSD',
-    packages=['emailconfirmation'],
+    packages=['simpleemailconfirmation'],
     install_requires=['django>=1.4.2'],
     classifiers=[
         "Development Status :: 3 - Alpha",

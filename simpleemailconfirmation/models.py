@@ -1,4 +1,3 @@
-import datetime
 import random
 
 from django.conf import settings
@@ -6,70 +5,104 @@ from django.db import models
 from django.utils.hashcompat import sha_constructor
 from django.utils.timezone import now
 
-from .signals import email_confirmed, primary_email_address_changed
-
 try:
+    # django 1.5+
     User = settings.AUTH_USER_MODEL
 except AttributeError:
+    # django 1.4
     from django.contrib.auth.models import User
+
+from .signals import (
+    email_confirmed, unconfirmed_email_created, primary_email_changed,
+)
 
 
 class EmailConfirmationExpired(Exception):
     pass
 
 
-class EmailAddress(models.Model):
-    "An email address belonging to a User"
+class EmailUnconfirmed(Exception):
+    pass
 
-    user = models.ForeignKey(User, related_name='email_address_set')
-    email = models.EmailField()
-    is_primary = models.BooleanField(default=False)
 
-    class Meta:
-        unique_together = (('user', 'email'),)
+class SimpleEmailConfirmationUserMixin(object):
+    """
+    Mixin to be used with your django 1.5+ custom User model.
+    Provides python-level functionality only.
+    """
+
+    # override and customize as needed
+    email_field_name = 'email'
+
+    def _get_email(self):
+        return getattr(self, self.email_field_name)
+
+    def _set_email(self, email):
+        setattr(self, self.email_field_name, email)
+        # TODO catch django 1.4 update_fields exception and re-save
+        self.save(update_fields=[self.email_field_name])
 
     @property
-    def is_confirmed(self):
-        return self.email_confirmation_set.filter(is_confirmed=True).exists()
-
-    def __unicode__(self):
-        return u'%s (%s)' % (self.email, self.user)
-
-    def set_primary(self):
-        # set all others to is_primary=False
-        other_primaries = (
-            self.user.email_address_set.filter(is_primary=True)
-            .exclude(pk=self.pk)
+    def is_email_confirmed(self, email=None):
+        """
+        Is the email address confirmed for this User?
+        Defaults to their primary email.
+        """
+        if email is None:
+            email = getattr(self, self._get_email())
+        return (
+            self.email_address_set.exclude(confirmed_at__isnull=False)
+            .filter(email=email).exists()
         )
-        for other in other_primaries:
-            other.is_primary = False
-            other.save()
 
-        # set ourselves to is_primary=True (if necessary)
-        if not self.is_primary:
-            self.is_primary = True
-            self.save()
-            primary_email_address_changed.send(
-                sender=self.model, email_address=self,
-            )
+    def confirm_email(self, confirmation_key):
+        "Attempt to confirm an email using the given key"
+        self.email_address_set.confirm(confirmation_key)
+
+    def add_unconfirmed_email(self, email):
+        "Adds an unconfirmed email address and returns it"
+        # if email already exists, let exception be thrown
+        address = self.email_address_set.create_unconfirmed(email)
+        return address
+
+    def reset_confirmation_key_expiration(self, email):
+        address = self.email_address_set.get(email=email)
+        address.reset_key_expiration()
+
+    def set_primary_email(self, email):
+        "Set an email address as primary"
+        old_email = self._get_email()
+        if email == old_email:
+            return
+
+        address = self.email_address_set.get(email=email)
+        if not address.is_confirmed:
+            raise EmailUnconfirmed()
+
+        self._set_email(address.email)
+        primary_email_changed.send(self, old_email, self._get_email())
 
 
-class EmailConfirmationManager(models.Manager):
+class EmailAddressManager(models.Manager):
 
     def generate_key(self):
         "Generate a new random key and return it"
+        # TODO: a better encoding than hexdigest()?
+        # http://docs.python.org/2/library/base64.html ?
         return sha_constructor(str(random.random())).hexdigest()
 
-    def create_emailconfirmation(self, email_address=None):
+    def create_unconfirmed(self, email, user=None):
         "Create an email confirmation obj from the given email address obj"
-        email_address = email_address or self.instance
+        user = user or self.instance
+        if not user:
+            raise ValueError('Must specify user or call from related manager')
         key = self.generate_key()
-        confirmation = self.create(
-            email_address=email_address, created_at=now(), key=key,
-        )
-        return confirmation
+        # let email-already-exists exception propogate through
+        address = self.create(user=user, email=email, key=key)
+        unconfirmed_email_created.send(user, email)
+        return address
 
-    def confirm(self, key, user=None, make_primary=True):
+    def confirm(self, key, user=None):
         """
         Confirm an email address.
 
@@ -78,46 +111,65 @@ class EmailConfirmationManager(models.Manager):
         """
         queryset = self.all()
         if user:
-            queryset = queryset.filter(email_address__user=user)
-        confirmation = queryset.get(key=key)
+            queryset = queryset.filter(user=user)
+        email_address = queryset.get(key=key)
 
-        if confirmation.is_key_expired:
+        if email_address.is_key_expired:
             raise EmailConfirmationExpired()
 
-        confirmation.confirmed_at = now()
-        confirmation.save()
-        email_address = confirmation.email_address
+        email_address.confirmed_at = now()
+        # TODO: catch django 1.4 update_fields exception
+        email_address.save(update_fields=['confirmed_at'])
         email_confirmed.send(sender=self.model, email_address=email_address)
 
-        if make_primary:
-            email_address.set_primary()
-            email_address.save()
 
+class EmailAddress(models.Model):
+    "An email address belonging to a User"
 
-class EmailConfirmation(models.Model):
-    "The token used to confirm an email address"
-
-    email_address = models.ForeignKey(
-        EmailAddress, related_name='email_confirmation_set',
-    )
+    user = models.ForeignKey(User, related_name='email_address_set')
+    email = models.EmailField()
     key = models.CharField(max_length=40, unique=True)
-    created_at = models.DateTimeField()
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    reset_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text='Last time the confirmation key expiration was reset',
+    )
     confirmed_at = models.DateTimeField(
         blank=True, null=True,
-        help_text='First time this EmailConfirmation was confirmed',
+        help_text='First time this email was confirmed',
     )
 
-    objects = EmailConfirmationManager()
+    objects = EmailAddressManager()
+
+    class Meta:
+        unique_together = (('user', 'email'),)
+
+    def __unicode__(self):
+        return u'%s (%s)' % (self.email, self.user)
+
+    @property
+    def is_confirmed(self):
+        return self.confirmed_at is not None
+
+    @property
+    def is_primary(self):
+        return bool(self.user.email == self.email)
+
+    @property
+    def key_expires_at(self):
+        # By default, keys don't expire. If you want them to, set
+        # settings.SIMPLE_EMAIL_CONFIRMATION_EXPIRATION_PERIOD to a timedelta.
+        period = getattr(
+            settings, 'SIMPLE_EMAIL_CONFIRMATION_EXPIRATION_PERIOD', None
+        )
+        return self.reset_at + period if period is not None else None
 
     @property
     def is_key_expired(self):
-        # by default, confirmations don't expire.
-        # You can set settings.EMAIL_CONFIRMATION_DAYS if you want them to.
-        days = getattr(settings, 'EMAIL_CONFIRMATION_DAYS', None)
-        if days:
-            expiration = self.created_at + datetime.timedelta(days=days)
-            return expiration <= now()
-        return False
+        return self.key_expires_at and now() >= self.key_expires_at
 
-    def __unicode__(self):
-        return u'Confirmation for %s' % self.email_address
+    def reset_key_expiration(self):
+        self.reset_at = now()
+        # TODO: catch django 1.4 exception
+        self.save(update_fields=['reset_at'])

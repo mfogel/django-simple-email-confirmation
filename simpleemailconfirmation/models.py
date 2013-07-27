@@ -14,17 +14,27 @@ except AttributeError:
     from django.contrib.auth.models import User
 
 
+class EmailConfirmationExpired(Exception):
+    pass
+
+
 class EmailAddress(models.Model):
     "An email address belonging to a User"
-    
+
     user = models.ForeignKey(User, related_name='email_address_set')
     email = models.EmailField()
     is_primary = models.BooleanField(default=False)
-    
+
+    class Meta:
+        unique_together = (('user', 'email'),)
+
     @property
     def is_confirmed(self):
         return self.email_confirmation_set.filter(is_confirmed=True).exists()
-    
+
+    def __unicode__(self):
+        return u'%s (%s)' % (self.email, self.user)
+
     def set_primary(self):
         # set all others to is_primary=False
         other_primaries = (
@@ -40,16 +50,8 @@ class EmailAddress(models.Model):
             self.is_primary = True
             self.save()
             primary_email_address_changed.send(
-                sender=self.model, email_address=email_address,
+                sender=self.model, email_address=self,
             )
-    
-    def __unicode__(self):
-        return u'%s (%s)' % (self.email, self.user)
-    
-    class Meta:
-        unique_together = (
-            ('user', 'email'),
-        )
 
 
 class EmailConfirmationManager(models.Manager):
@@ -66,11 +68,13 @@ class EmailConfirmationManager(models.Manager):
             email_address=email_address, created_at=now(), key=key,
         )
         return confirmation
-    
+
     def confirm(self, key, user=None, make_primary=True):
         """
         Confirm an email address.
-        Raises exception in various failure states.
+
+        If an email was already confirmed, we silently re-confirm
+        the email address.
         """
         queryset = self.all()
         if user:
@@ -82,6 +86,7 @@ class EmailConfirmationManager(models.Manager):
 
         confirmation.confirmed_at = now()
         confirmation.save()
+        email_address = confirmation.email_address
         email_confirmed.send(sender=self.model, email_address=email_address)
 
         if make_primary:
@@ -91,16 +96,20 @@ class EmailConfirmationManager(models.Manager):
 
 class EmailConfirmation(models.Model):
     "The token used to confirm an email address"
-    
+
     email_address = models.ForeignKey(
         EmailAddress, related_name='email_confirmation_set',
     )
     key = models.CharField(max_length=40, unique=True)
     created_at = models.DateTimeField()
-    confirmed_at = models.DateTimeField()
-    
+    confirmed_at = models.DateTimeField(
+        blank=True, null=True,
+        help_text='First time this EmailConfirmation was confirmed',
+    )
+
     objects = EmailConfirmationManager()
-    
+
+    @property
     def is_key_expired(self):
         # by default, confirmations don't expire.
         # You can set settings.EMAIL_CONFIRMATION_DAYS if you want them to.
@@ -109,6 +118,6 @@ class EmailConfirmation(models.Model):
             expiration = self.created_at + datetime.timedelta(days=days)
             return expiration <= now()
         return False
-    
+
     def __unicode__(self):
         return u'Confirmation for %s' % self.email_address

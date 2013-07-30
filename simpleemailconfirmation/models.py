@@ -65,10 +65,6 @@ class SimpleEmailConfirmationUserMixin(object):
         address = self.email_address_set.create_unconfirmed(email)
         return address
 
-    def reset_confirmation_key_expiration(self, email):
-        address = self.email_address_set.get(email=email)
-        address.reset_key_expiration()
-
     def set_primary_email(self, email):
         "Set an email address as primary"
         old_email = self._get_email()
@@ -173,3 +169,14 @@ class EmailAddress(models.Model):
         self.reset_at = now()
         # TODO: catch django 1.4 exception
         self.save(update_fields=['reset_at'])
+
+    def reset_key(self):
+        """
+        Re-generate the confirmation key and key expiration associated
+        with this email.  Note that the previou confirmation key will
+        cease to work.
+        """
+        self.key = self._default_manager.generate_key()
+        self.reset_at = now()
+        # TODO: catch django 1.4 exception
+        self.save(update_fields=['key', 'reset_at'])

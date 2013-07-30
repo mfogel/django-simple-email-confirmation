@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from .models import EmailAddress
@@ -10,12 +11,13 @@ from .signals import (
 class EmailConfirmationTestCase(TestCase):
 
     def setUp(self):
-        # TODO: create a User
-        self.user = None
+        self.user = get_user_model().objects.create_user(
+            'username', email='nobody@important.com', password='nevaeva'
+        )
 
     def test_key_generation(self):
         "Generate a few keys and make sure they're unique"
-        generator = EmailAddress.objects.key_generation
+        generator = EmailAddress.objects.generate_key
         key1 = generator()
         key2 = generator()
         key3 = generator()

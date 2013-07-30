@@ -13,6 +13,12 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 
+# add the apps dir to the path so our app imports work out
+import sys
+APPS_ROOT = os.path.join(BASE_DIR, 'test_project', 'apps')
+sys.path.insert(0, APPS_ROOT)
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/{{ docs_version }}/howto/deployment/checklist/
 
@@ -37,6 +43,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'simple_email_confirmation',
+    'test_app',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -81,3 +88,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/{{ docs_version }}/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+# Custom user model
+AUTH_USER_MODEL = 'test_app.User'

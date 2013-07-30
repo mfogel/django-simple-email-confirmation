@@ -12,6 +12,6 @@ install:
   - pip install $DJANGO
   - pip install -e .
 before_script:
-  - export DJANGO_SETTINGS_MODULE=simple_email_confirmation.test_settings
+  - export DJANGO_SETTINGS_MODULE=simple_email_confirmation.test_project.settings
 script:
   - django-admin.py test simple_email_confirmation

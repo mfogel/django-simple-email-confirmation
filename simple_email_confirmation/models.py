@@ -5,13 +5,6 @@ from django.db import models
 from django.utils.hashcompat import sha_constructor
 from django.utils.timezone import now
 
-try:
-    # django 1.5+
-    User = settings.AUTH_USER_MODEL
-except AttributeError:
-    # django 1.4
-    from django.contrib.auth.models import User
-
 from .exceptions import (
     EmailAlreadyConfirmed, EmailConfirmationExpired, EmailUnconfirmed,
 )
@@ -34,7 +27,6 @@ class SimpleEmailConfirmationUserMixin(object):
 
     def _set_email(self, email):
         setattr(self, self.email_field_name, email)
-        # TODO catch django 1.4 update_fields exception and re-save
         self.save(update_fields=[self.email_field_name])
 
     @property
@@ -108,7 +100,6 @@ class EmailAddressManager(models.Manager):
             raise EmailAlreadyConfirmed()
 
         address.confirmed_at = now()
-        # TODO: catch django 1.4 update_fields exception
         address.save(update_fields=['confirmed_at'])
         email_confirmed.send(sender=address.user, email=address.email)
 
@@ -116,7 +107,9 @@ class EmailAddressManager(models.Manager):
 class EmailAddress(models.Model):
     "An email address belonging to a User"
 
-    user = models.ForeignKey(User, related_name='email_address_set')
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name='email_address_set',
+    )
     email = models.EmailField()
     key = models.CharField(max_length=40, unique=True)
 
@@ -161,7 +154,6 @@ class EmailAddress(models.Model):
 
     def reset_key_expiration(self):
         self.reset_at = now()
-        # TODO: catch django 1.4 exception
         self.save(update_fields=['reset_at'])
 
     def reset_key(self):
@@ -172,5 +164,4 @@ class EmailAddress(models.Model):
         """
         self.key = self._default_manager.generate_key()
         self.reset_at = now()
-        # TODO: catch django 1.4 exception
         self.save(update_fields=['key', 'reset_at'])

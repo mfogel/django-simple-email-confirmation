@@ -2,10 +2,10 @@
 Django settings for project project.
 
 For more information on this file, see
-https://docs.djangoproject.com/en/{{ docs_version }}/topics/settings/
+https://docs.djangoproject.com/en/dev/topics/settings/
 
 For the full list of settings and their values, see
-https://docs.djangoproject.com/en/{{ docs_version }}/ref/settings/
+https://docs.djangoproject.com/en/dev/ref/settings/
 """
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -20,10 +20,10 @@ sys.path.insert(0, APPS_ROOT)
 
 
 # Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/{{ docs_version }}/howto/deployment/checklist/
+# See https://docs.djangoproject.com/en/dev/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '{{ secret_key }}'
+SECRET_KEY = 'not-particularly-secret'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -61,7 +61,7 @@ WSGI_APPLICATION = 'project.wsgi.application'
 
 
 # Database
-# https://docs.djangoproject.com/en/{{ docs_version }}/ref/settings/#databases
+# https://docs.djangoproject.com/en/dev/ref/settings/#databases
 
 DATABASES = {
     'default': {
@@ -71,7 +71,7 @@ DATABASES = {
 }
 
 # Internationalization
-# https://docs.djangoproject.com/en/{{ docs_version }}/topics/i18n/
+# https://docs.djangoproject.com/en/dev/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 
@@ -85,7 +85,7 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/{{ docs_version }}/howto/static-files/
+# https://docs.djangoproject.com/en/dev/howto/static-files/
 
 STATIC_URL = '/static/'
 

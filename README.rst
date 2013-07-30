@@ -1,6 +1,10 @@
 django-simple-email-confirmation
 ================================
 
+.. image:: https://api.travis-ci.org/mfogel/django-simple-email-confirmation.png?branch=develop
+   :alt: Build Status
+   :target: https://travis-ci.org/mfogel/django-simple-email-confirmation
+
 A Django app providing simple email confirmation.
 
 This app assumes you're storing one email address somewhere on your User model. You can use this app to maintain multiple email addresses for a User, but one will still be singled out as 'primary' - namely, the one that's replicated on the User model.

@@ -1,0 +1,19 @@
+language: python
+python:
+  - 2.6
+  - 2.7
+  - 3.2
+  - 3.3
+env: # TODO: add django 1.6
+  - DJANGO='django>=1.5,<1.6'
+before_install:
+  - export PIP_USE_MIRRORS=true
+install:
+  - pip install $DJANGO
+  - pip install flake8
+  - pip install -e .
+before_script:
+  - export DJANGO_SETTINGS_MODULE=simple_email_confirmation.test_settings
+  - flake8 .
+script:
+  - django-admin.py test simple_email_confirmation

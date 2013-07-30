@@ -1,7 +1,14 @@
+from datetime import timedelta
+from time import sleep
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from django.test.utils import override_settings
 
+from .exceptions import (
+    EmailAlreadyConfirmed, EmailConfirmationExpired, EmailUnconfirmed,
+)
 from .models import EmailAddress
 from .signals import (
     email_confirmed, unconfirmed_email_created, primary_email_changed,
@@ -11,9 +18,9 @@ from .signals import (
 class EmailConfirmationTestCase(TestCase):
 
     def setUp(self):
-        self.user = get_user_model().objects.create_user(
-            'username', email='nobody@important.com', password='nevaeva'
-        )
+        email = 'nobody@important.com'
+        self.user = get_user_model().objects.create_user('uname', email=email)
+        self.address = self.user.add_unconfirmed_email(email)
 
     def test_key_generation(self):
         "Generate a few keys and make sure they're unique"
@@ -29,9 +36,15 @@ class EmailConfirmationTestCase(TestCase):
     def test_create_unconfirmed(self):
         "Add an unconfirmed email for a User"
         email = 'test@test.test'
+
+        # assert signal fires as expected
+        def listener(sender, **kwargs):
+            self.assertEqual(sender, self.user)
+            self.assertEqual(email, kwargs.get('email'))
+        unconfirmed_email_created.connect(listener)
+
         self.user.add_unconfirmed_email(email)
 
-        # assert signal fired
         address = self.user.email_address_set.get(email=email)
         self.assertFalse(address.is_confirmed)
 
@@ -40,8 +53,7 @@ class EmailConfirmationTestCase(TestCase):
         email = 'test@test.test'
         address = self.user.add_unconfirmed_email(email)
         org_key, org_at = address.key, address.reset_at
-        # TODO: sleep?
-        sleep(0.1);
+        sleep(0.1)
         address.reset_key()
 
         self.assertNotEqual(address.key, org_key)
@@ -52,8 +64,7 @@ class EmailConfirmationTestCase(TestCase):
         email = 'test@test.test'
         address = self.user.add_unconfirmed_email(email)
         org_at = address.reset_at
-        # TODO: sleep?
-        sleep(0.1);
+        sleep(0.1)
         address.reset_key_expiration()
 
         self.assertGreater(address.reset_at, org_at)
@@ -61,38 +72,44 @@ class EmailConfirmationTestCase(TestCase):
     def test_confirm_email(self):
         "Confirm an outstanding confirmation"
         email1, email2, email3 = '1@t.t', '2@t.t', '3@t.t'
-        # TODO: silence pylint unused variable?
-        address1 = self.user.add_unconfirmed_email(email1)
-        address2 = self.user.add_unconfirmed_email(email2)
-        address3 = self.user.add_unconfirmed_email(email3)
+        self.user.add_unconfirmed_email(email1)
+        self.user.add_unconfirmed_email(email2)
+        self.user.add_unconfirmed_email(email3)
 
-        self.user.email_address_set.confirm(address2.key)
-        # assert the signal fired
+        # assert signal fires as expected
+        def listener(sender, **kwargs):
+            self.assertEqual(sender, self.user)
+            self.assertEqual(kwargs.get('email'), self.user.email)
+        email_confirmed.connect(listener)
 
-        self.assertFalse(self.user.is_confirmed(email1))
-        self.assertTrue(self.user.is_confirmed(email2))
-        self.assertFalse(self.user.is_confirmed(email3))
+        self.user.confirm_email(self.address.key)
+
+        self.assertTrue(self.user.is_confirmed)
+        self.assertTrue(self.user.is_email_confirmed(self.address.email))
+        self.assertFalse(self.user.is_email_confirmed(email1))
+        self.assertFalse(self.user.is_email_confirmed(email2))
+        self.assertFalse(self.user.is_email_confirmed(email3))
 
     def test_confirm_previously_confirmed_confirmation(self):
         "Re-confirm an confirmation that was already confirmed"
         email = 't@t.t'
-        self.user.add_unconfirmed_email(email)
-        self.user.email_address_set.confirm(email)
+        address = self.user.add_unconfirmed_email(email)
+        self.user.confirm_email(address.key)
 
-        # assert raises exception
-        self.user.email_address_set.confirm(email)
+        with self.assertRaises(EmailAlreadyConfirmed):
+            self.user.confirm_email(address.key)
 
-    # settings override
+    @override_settings(SIMPLE_EMAIL_CONFIRMATION_PERIOD=timedelta(weeks=1))
     def test_attempt_confirm_expired_confirmation(self):
         "Try to confirm an expired confirmation"
         email = 't@t.t'
         address = self.user.add_unconfirmed_email(email)
         period = settings.SIMPLE_EMAIL_CONFIRMATION_PERIOD
-        # TODO: silence pylint error
-        address.reset_at = address.reset_at - period*2
+        address.reset_at = address.reset_at - period * 2
+        address.save()
 
-        # assert raises exception
-        self.user.email_address_set.confirm(email)
+        with self.assertRaises(EmailConfirmationExpired):
+            self.user.confirm_email(address.key)
 
     def test_attempt_confirm_invalid_key(self):
         "Try to confirm an with an invalid confirmation key"
@@ -101,47 +118,56 @@ class EmailConfirmationTestCase(TestCase):
         self.user.add_unconfirmed_email(email2)
 
         invalid_key = 'thisisnotgoingtoappearrandomaly'
-        # assert raises exception
-        self.user.confirm_key(invalid_key)
+        with self.assertRaises(EmailAddress.DoesNotExist):
+            self.user.confirm_email(invalid_key)
 
 
 class PrimaryEmailTestCase(TestCase):
 
     def setUp(self):
-        # TODO: create a User
-        self.user = None
+        email = 'nobody@important.com'
+        self.user = get_user_model().objects.create_user('uname', email=email)
+        self.address = self.user.add_unconfirmed_email(email)
 
     def test_set_priamry_email(self):
         "Set an email to priamry"
         # set up two emails, confirm them post
         email1 = '1@t.t'
-        self.user.add_unconfirmed_email(email1)
-        self.user.confirm(email1)
+        address = self.user.add_unconfirmed_email(email1)
+        self.user.confirm_email(address.key)
         self.user.set_primary_email(email1)
 
         email2 = '2@t.t'
-        self.user.add_unconfirmed_email(email2)
-        self.user.confirm(email2)
+        address = self.user.add_unconfirmed_email(email2)
+        self.user.confirm_email(address.key)
+
+        # assert signal fires as expected
+        def listener(sender, **kwargs):
+            self.assertEqual(sender, self.user)
+            self.assertEqual(kwargs.get('old_email'), email1)
+            self.assertEqual(kwargs.get('new_email'), email2)
+        primary_email_changed.connect(listener)
+
         self.user.set_primary_email(email2)
 
-        # assert signal fired, twice
-        self.assertEqual(self._get_email(), email2)
+        self.assertEqual(self.user._get_email(), email2)
 
     def test_attempt_set_primary_email_to_unowned_email(self):
         "Try to set a primary email to one that doesn't belong to the user"
-        # TODO: setup another User
-        other_user = None
+        other_user = get_user_model().objects.create_user(
+            'myname', email='somebody@important.com',
+        )
         email = '1@t.t'
-        other_user.add_unconfirmed_email(email)
-        other_user.confirm(email)
+        address = other_user.add_unconfirmed_email(email)
+        other_user.confirm_email(address.key)
 
-        # assert raises exception
-        self.user.set_primary_email(email)
+        with self.assertRaises(EmailAddress.DoesNotExist):
+            self.user.set_primary_email(email)
 
     def test_attempt_set_primary_email_to_unconfirmed_email(self):
         "Try to set a primary email to one that hasn't been confirmed"
         email = '1@t.t'
         self.user.add_unconfirmed_email(email)
 
-        # assert raises exception
-        self.set_primary_email(email)
+        with self.assertRaises(EmailUnconfirmed):
+            self.user.set_primary_email(email)

@@ -12,17 +12,12 @@ except AttributeError:
     # django 1.4
     from django.contrib.auth.models import User
 
+from .exceptions import (
+    EmailAlreadyConfirmed, EmailConfirmationExpired, EmailUnconfirmed,
+)
 from .signals import (
     email_confirmed, unconfirmed_email_created, primary_email_changed,
 )
-
-
-class EmailConfirmationExpired(Exception):
-    pass
-
-
-class EmailUnconfirmed(Exception):
-    pass
 
 
 class SimpleEmailConfirmationUserMixin(object):
@@ -43,15 +38,14 @@ class SimpleEmailConfirmationUserMixin(object):
         self.save(update_fields=[self.email_field_name])
 
     @property
-    def is_email_confirmed(self, email=None):
-        """
-        Is the email address confirmed for this User?
-        Defaults to their primary email.
-        """
-        if email is None:
-            email = getattr(self, self._get_email())
+    def is_confirmed(self):
+        "Is the User's primary email address confirmed?"
+        return self.is_email_confirmed(self._get_email())
+
+    def is_email_confirmed(self, email):
+        "Is the email address confirmed for this User?"
         return (
-            self.email_address_set.exclude(confirmed_at__isnull=False)
+            self.email_address_set.exclude(confirmed_at__isnull=True)
             .filter(email=email).exists()
         )
 
@@ -76,7 +70,9 @@ class SimpleEmailConfirmationUserMixin(object):
             raise EmailUnconfirmed()
 
         self._set_email(address.email)
-        primary_email_changed.send(self, old_email, self._get_email())
+        primary_email_changed.send(
+            sender=self, old_email=old_email, new_email=self._get_email(),
+        )
 
 
 class EmailAddressManager(models.Manager):
@@ -95,28 +91,26 @@ class EmailAddressManager(models.Manager):
         key = self.generate_key()
         # let email-already-exists exception propogate through
         address = self.create(user=user, email=email, key=key)
-        unconfirmed_email_created.send(user, email)
+        unconfirmed_email_created.send(sender=user, email=email)
         return address
 
     def confirm(self, key, user=None):
-        """
-        Confirm an email address.
-
-        If an email was already confirmed, we silently re-confirm
-        the email address.
-        """
+        "Confirm an email address"
         queryset = self.all()
         if user:
             queryset = queryset.filter(user=user)
-        email_address = queryset.get(key=key)
+        address = queryset.get(key=key)
 
-        if email_address.is_key_expired:
+        if address.is_key_expired:
             raise EmailConfirmationExpired()
 
-        email_address.confirmed_at = now()
+        if address.is_confirmed:
+            raise EmailAlreadyConfirmed()
+
+        address.confirmed_at = now()
         # TODO: catch django 1.4 update_fields exception
-        email_address.save(update_fields=['confirmed_at'])
-        email_confirmed.send(sender=self.model, email_address=email_address)
+        address.save(update_fields=['confirmed_at'])
+        email_confirmed.send(sender=address.user, email=address.email)
 
 
 class EmailAddress(models.Model):
@@ -155,9 +149,9 @@ class EmailAddress(models.Model):
     @property
     def key_expires_at(self):
         # By default, keys don't expire. If you want them to, set
-        # settings.SIMPLE_EMAIL_CONFIRMATION_EXPIRATION_PERIOD to a timedelta.
+        # settings.SIMPLE_EMAIL_CONFIRMATION_PERIOD to a timedelta.
         period = getattr(
-            settings, 'SIMPLE_EMAIL_CONFIRMATION_EXPIRATION_PERIOD', None
+            settings, 'SIMPLE_EMAIL_CONFIRMATION_PERIOD', None
         )
         return self.reset_at + period if period is not None else None
 

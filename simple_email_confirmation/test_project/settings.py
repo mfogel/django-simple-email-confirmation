@@ -36,7 +36,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'simpleemailconfirmation',
+    'simple_email_confirmation',
 )
 
 MIDDLEWARE_CLASSES = (

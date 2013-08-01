@@ -12,7 +12,10 @@ before_install:
 install:
   - pip install $DJANGO
   - pip install -e .
+  - pip install coveralls
 before_script:
   - export DJANGO_SETTINGS_MODULE=simple_email_confirmation.test_project.settings
 script:
-  - django-admin.py test simple_email_confirmation
+  - coverage run --include='*simple_email_confirmation*' --omit='*test_project*,*tests.py' $(which django-admin.py) test simple_email_confirmation
+after_success:
+  - coveralls

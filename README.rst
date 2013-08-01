@@ -5,6 +5,10 @@ django-simple-email-confirmation
    :alt: Build Status
    :target: https://travis-ci.org/mfogel/django-simple-email-confirmation
 
+.. image:: https://coveralls.io/repos/mfogel/django-simple-email-confirmation/badge.png?branch=develop
+   :alt: Coverage Status
+   :target: https://coveralls.io/r/mfogel/django-simple-email-confirmation
+
 A Django app providing simple email confirmation.
 
 This app can be used to support three types of User models:

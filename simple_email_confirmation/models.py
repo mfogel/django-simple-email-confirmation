@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.conf import settings
 from django.db import models
 from django.utils.crypto import get_random_string
@@ -126,7 +128,7 @@ class EmailAddress(models.Model):
         unique_together = (('user', 'email'),)
 
     def __unicode__(self):
-        return u'%s (%s)' % (self.email, self.user)
+        return '{} ({})'.format(self.email, self.user)
 
     @property
     def is_confirmed(self):

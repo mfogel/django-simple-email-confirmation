@@ -1,8 +1,6 @@
-import hashlib
-import random
-
 from django.conf import settings
 from django.db import models
+from django.utils.crypto import get_random_string
 from django.utils.timezone import now
 
 from .exceptions import (
@@ -71,9 +69,8 @@ class EmailAddressManager(models.Manager):
 
     def generate_key(self):
         "Generate a new random key and return it"
-        # TODO: a better encoding than hexdigest()?
-        # http://docs.python.org/2/library/base64.html ?
-        return hashlib.sha1(str(random.random())).hexdigest()
+        # sticking with the django defaults
+        return get_random_string()
 
     def create_unconfirmed(self, email, user=None):
         "Create an email confirmation obj from the given email address obj"

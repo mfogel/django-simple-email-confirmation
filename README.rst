@@ -2,12 +2,16 @@ django-simple-email-confirmation
 ================================
 
 .. image:: https://api.travis-ci.org/mfogel/django-simple-email-confirmation.png?branch=develop
-   :alt: Build Status
    :target: https://travis-ci.org/mfogel/django-simple-email-confirmation
 
 .. image:: https://coveralls.io/repos/mfogel/django-simple-email-confirmation/badge.png?branch=develop
-   :alt: Coverage Status
    :target: https://coveralls.io/r/mfogel/django-simple-email-confirmation
+
+.. image:: https://pypip.in/v/django-simple-email-confirmation/badge.png
+   :target: https://crate.io/packages/django-simple-email-confirmation/
+
+.. image:: https://pypip.in/d/django-simple-email-confirmation/badge.png
+   :target: https://crate.io/packages/django-simple-email-confirmation/
 
 A Django app providing simple email confirmation.
 

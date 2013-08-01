@@ -82,10 +82,11 @@ class EmailConfirmationTestCase(TestCase):
             self.assertEqual(kwargs.get('email'), self.user.email)
         email_confirmed.connect(listener)
 
-        self.user.confirm_email(self.address.key)
+        confirmed_address = self.user.confirm_email(self.address.key)
 
         self.assertTrue(self.user.is_confirmed)
         self.assertTrue(self.user.is_email_confirmed(self.address.email))
+        self.assertEqual(confirmed_address, self.address)
         self.assertFalse(self.user.is_email_confirmed(email1))
         self.assertFalse(self.user.is_email_confirmed(email2))
         self.assertFalse(self.user.is_email_confirmed(email3))

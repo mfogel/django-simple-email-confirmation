@@ -77,7 +77,7 @@ From `pypi`__ using `pip`__:
 
 .. code:: sh
 
-    pip install django-timezone-field
+    pip install django-simple-email-confirmation
 
 Running the Tests
 -----------------

@@ -26,7 +26,11 @@ setup(
     long_description=read('README.rst'),
     url='https://github.com/mfogel/django-simple-email-confirmation',
     license='BSD',
-    packages=['simple_email_confirmation'],
+    packages=[
+        'simple_email_confirmation',
+        'simple_email_confirmation.test_project',
+        'simple_email_confirmation.test_project.apps.test_app',
+    ],
     install_requires=['django>=1.5.0'],
     classifiers=[
         "Development Status :: 3 - Alpha",

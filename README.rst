@@ -15,42 +15,34 @@ django-simple-email-confirmation
 
 A Django app providing simple email confirmation.
 
-This app can be used to support three types of User models:
+This app can be used to support three different ways of organizing your Users their email address(es):
 
 - Users have one email address that is stored on the `User` model
 - Users have one primary email address stored on the `User` model, and have N secondary emails stored in `EmailAddress` objects
 - Users have N email addresses stored in `EmailAddress` objects.
 
+
 Examples
 --------
 
-Add the provided mixin to your `django 1.5+ custom user model`__:
+Create a new User, confirm their email:
 
 .. code:: python
 
-    from django.contrib.auth.models import AbstractUser
-    from simple_email_confirmation import SimpleEmailConfirmationUserMixin
-
-    class User(SimpleEmailConfirmationUserMixin, AbstractUser):
-        pass
-
-then, when creating a new User you probably want to do something like:
-
-.. code:: python
-
-    user = User.objects.create_user('original@here.com')
-    address = user.add_unconfirmed_email(user.email)
+    email = 'original@here.com'
+    user = User.objects.create_user(email, email=email)
+    address = user.add_unconfirmed_email(email)
 
     confirmation_key = address.key
     user.is_confirmed # False
 
-    send_email(user.email, 'Use %s to confirm your email' % confirmation_key)
+    send_email(email, 'Use %s to confirm your email' % confirmation_key)
     # User gets email, passes the confirmation_key back to your server
 
     user.confirm_email(confirmation_key)
     user.is_confirmed # True
 
-when changing a User's email, the flow might go:
+Add another email to an existing User, confirm it, then set it as their primary.
 
 .. code:: python
 
@@ -73,11 +65,33 @@ when changing a User's email, the flow might go:
 Installation
 ------------
 
-From `pypi`__ using `pip`__:
+#.  From `pypi`__ using `pip`__:
 
-.. code:: sh
+    .. code:: sh
 
-    pip install django-simple-email-confirmation
+        pip install django-simple-email-confirmation
+
+#.  Add `simple_email_confirmation` to your `settings.INSTALLED_APPS`__:
+
+    .. code:: python
+
+        INSTALLED_APPS = (
+            ...
+            simple_email_confirmation,
+            ...
+        )
+
+#.  Add the provided mixin to your `django 1.5+ custom user model`__:
+
+    .. code:: python
+
+        from django.contrib.auth.models import AbstractUser
+        from simple_email_confirmation import SimpleEmailConfirmationUserMixin
+
+        class User(SimpleEmailConfirmationUserMixin, AbstractUser):
+            pass
+
+    Note: you don't strictly have to do this step. Without this, you won't have the nice helper functions and properties on your `User` objects but the remainder of the app should function fine.
 
 Running the Tests
 -----------------
@@ -91,10 +105,12 @@ Using `Doug Hellman's virtualenvwrapper`__:
     export DJANGO_SETTINGS_MODULE=simple_email_confirmation.test_project.settings
     django-admin.py test simple_email_confirmation
 
+
 Found a Bug?
 ------------
 
 To file a bug or submit a patch, please head over to `django-simple-email-confirmation on github`__.
+
 
 Credits
 -------
@@ -102,9 +118,10 @@ Credits
 Originally adapted from `Pinax's django-email-confirmation`__, which was originally adapted from `James Tauber's django-email-confirmation`__.
 
 
-__ https://docs.djangoproject.com/en/dev/topics/auth/customizing/#specifying-a-custom-user-model
 __ http://pypi.python.org/pypi/django-simple-email-confirmation/
 __ http://www.pip-installer.org/
+__ https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
+__ https://docs.djangoproject.com/en/dev/topics/auth/customizing/#specifying-a-custom-user-model
 __ http://www.doughellmann.com/projects/virtualenvwrapper/
 __ https://github.com/mfogel/django-simple-email-confirmation
 __ https://github.com/pinax/django-email-confirmation

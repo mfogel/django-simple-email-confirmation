@@ -110,7 +110,7 @@ class EmailAddress(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, related_name='email_address_set',
     )
-    email = models.EmailField()
+    email = models.EmailField(max_length=255)
     key = models.CharField(max_length=40, unique=True)
 
     created_at = models.DateTimeField(auto_now_add=True)

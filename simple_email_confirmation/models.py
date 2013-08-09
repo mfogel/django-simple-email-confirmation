@@ -8,8 +8,7 @@ from django.utils.crypto import get_random_string
 from django.utils.timezone import now
 
 from .exceptions import (
-    EmailAlreadyConfirmed, EmailConfirmationExpired, EmailIsPrimary,
-    EmailNotConfirmed,
+    EmailConfirmationExpired, EmailIsPrimary, EmailNotConfirmed,
 )
 from .signals import (
     email_confirmed, unconfirmed_email_created, primary_email_changed,
@@ -128,12 +127,12 @@ class EmailAddressManager(models.Manager):
         if address.is_key_expired:
             raise EmailConfirmationExpired()
 
-        if address.is_confirmed:
-            raise EmailAlreadyConfirmed()
+        if not address.is_confirmed:
+            address.confirmed_at = now()
+            address.save(update_fields=['confirmed_at'])
+            email_confirmed.send(sender=address.user, email=address.email)
 
-        address.confirmed_at = now()
-        address.save(update_fields=['confirmed_at'])
-        email_confirmed.send(sender=address.user, email=address.email)
+        return address.user
 
 
 class EmailAddress(models.Model):

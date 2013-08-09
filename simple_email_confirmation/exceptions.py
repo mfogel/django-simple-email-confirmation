@@ -4,9 +4,6 @@
 class SimpleEmailConfirmationException(Exception):
     pass
 
-class EmailAlreadyConfirmed(SimpleEmailConfirmationException):
-    pass
-
 class EmailNotConfirmed(SimpleEmailConfirmationException):
     pass
 

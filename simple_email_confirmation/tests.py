@@ -7,7 +7,7 @@ from django.test import TestCase
 from django.test.utils import override_settings
 
 from .exceptions import (
-    EmailAlreadyConfirmed, EmailConfirmationExpired, EmailNotConfirmed,
+    EmailConfirmationExpired, EmailNotConfirmed,
 )
 from .models import EmailAddress
 from .signals import (
@@ -91,9 +91,13 @@ class EmailConfirmationTestCase(TestCase):
         email = 't@t.t'
         key = self.user.add_unconfirmed_email(email)
         self.user.confirm_email(key)
+        at_before = self.user.email_address_set.get(email=email).confirmed_at
 
-        with self.assertRaises(EmailAlreadyConfirmed):
-            self.user.confirm_email(key)
+        self.user.confirm_email(key)
+        at_after = self.user.email_address_set.get(email=email).confirmed_at
+
+        self.assertIn(email, self.user.confirmed_emails)
+        self.assertEqual(at_after, at_before)
 
     @override_settings(SIMPLE_EMAIL_CONFIRMATION_PERIOD=timedelta(weeks=1))
     def test_attempt_confirm_expired_confirmation(self):

@@ -1,8 +1,17 @@
-class EmailAlreadyConfirmed(Exception):
+"Simple Email Confirmation Exceptions"
+
+
+class SimpleEmailConfirmationException(Exception):
     pass
 
-class EmailConfirmationExpired(Exception):
+class EmailAlreadyConfirmed(SimpleEmailConfirmationException):
     pass
 
-class EmailUnconfirmed(Exception):
+class EmailNotConfirmed(SimpleEmailConfirmationException):
+    pass
+
+class EmailConfirmationExpired(SimpleEmailConfirmationException):
+    pass
+
+class EmailIsPrimary(SimpleEmailConfirmationException):
     pass

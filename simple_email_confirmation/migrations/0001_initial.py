@@ -19,8 +19,7 @@ class Migration(SchemaMigration):
             ('user', self.gf('django.db.models.fields.related.ForeignKey')(related_name=u'email_address_set', to=orm[user_orm_label])),
             ('email', self.gf('django.db.models.fields.EmailField')(max_length=255)),
             ('key', self.gf('django.db.models.fields.CharField')(unique=True, max_length=40)),
-            ('created_at', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('reset_at', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
+            ('set_at', self.gf('django.db.models.fields.DateTimeField')()),
             ('confirmed_at', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
         ))
         db.send_create_signal(u'simple_email_confirmation', ['EmailAddress'])
@@ -41,11 +40,10 @@ class Migration(SchemaMigration):
         u'simple_email_confirmation.emailaddress': {
             'Meta': {'unique_together': "((u'user', u'email'),)", 'object_name': 'EmailAddress'},
             'confirmed_at': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'created_at': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'email': ('django.db.models.fields.EmailField', [], {'max_length': '75'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'key': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '40'}),
-            'reset_at': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            'set_at': ('django.db.models.fields.DateTimeField', [], {}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "u'email_address_set'", 'to': u"orm['%s']" % user_orm_label})
         },
         user_model_label: {

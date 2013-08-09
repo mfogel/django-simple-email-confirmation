@@ -15,9 +15,9 @@ django-simple-email-confirmation
 
 A Django app providing simple email confirmation.
 
-This app can be used to support three different ways of organizing your Users their email address(es):
+This app can be used to support three different ways of organizing your Users their email address(es). Each email address can be in a confirmed/unconfirmed state.
 
-- Users have one email address that is stored on the `User` model
+- Users have one email address that is stored on the `User`
 - Users have one primary email address stored on the `User` model, and have N secondary emails stored in `EmailAddress` objects
 - Users have N email addresses stored in `EmailAddress` objects.
 
@@ -31,12 +31,9 @@ Create a new User, confirm their email:
 
     email = 'original@here.com'
     user = User.objects.create_user(email, email=email)
-    address = user.add_unconfirmed_email(email)
-
-    confirmation_key = address.key
     user.is_confirmed # False
 
-    send_email(email, 'Use %s to confirm your email' % confirmation_key)
+    send_email(email, 'Use %s to confirm your email' % user.confirmation_key)
     # User gets email, passes the confirmation_key back to your server
 
     user.confirm_email(confirmation_key)
@@ -47,16 +44,14 @@ Add another email to an existing User, confirm it, then set it as their primary.
 .. code:: python
 
     new_email = 'newaddr@nowhere.com'
-    address = user.add_unconfirmed_email(new_email)
-
-    confirmation_key = address.key
-    user.is_email_confirmed(new_email) # False
+    confirmation_key = user.add_unconfirmed_email(new_email)
+    new_email in user.unconfirmed_emails # True
 
     send_email(new_email, 'Use %s to confirm your new email' % confirmation_key)
     # User gets email, passes the confirmation_key back to your server
 
     user.confirm_email(confirmation_key)
-    user.is_email_confirmed(new_email) # True
+    new_email in user.confirmed_emails # True
 
     user.set_primary_email(new_email)
     user.email # newaddr@nowhere.com
@@ -92,6 +87,7 @@ Installation
             pass
 
     Note: you don't strictly have to do this step. Without this, you won't have the nice helper functions and properties on your `User` objects but the remainder of the app should function fine.
+
 
 Running the Tests
 -----------------

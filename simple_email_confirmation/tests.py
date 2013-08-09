@@ -7,7 +7,7 @@ from django.test import TestCase
 from django.test.utils import override_settings
 
 from .exceptions import (
-    EmailConfirmationExpired, EmailNotConfirmed,
+    EmailConfirmationExpired, EmailIsPrimary, EmailNotConfirmed,
 )
 from .models import EmailAddress
 from .signals import (
@@ -122,6 +122,28 @@ class EmailConfirmationTestCase(TestCase):
         with self.assertRaises(EmailAddress.DoesNotExist):
             self.user.confirm_email(invalid_key)
 
+    def test_remove_email(self):
+        email_unconfirmed = 'unconfirmed@t.t'
+        email_confirmed = 'confirmed@t.t'
+
+        self.user.add_unconfirmed_email(email_unconfirmed)
+        key = self.user.add_unconfirmed_email(email_confirmed)
+        self.user.confirm_email(key)
+
+        self.assertIn(email_confirmed, self.user.confirmed_emails)
+        self.assertIn(email_unconfirmed, self.user.unconfirmed_emails)
+
+        # can't remove the primary
+        with self.assertRaises(EmailIsPrimary):
+            self.user.remove_email(self.user.email)
+
+        # can remove the unconfirmed
+        self.user.remove_email(email_unconfirmed)
+        self.assertNotIn(email_unconfirmed, self.user.unconfirmed_emails)
+
+        # can remove the confirmed
+        self.user.remove_email(email_confirmed)
+        self.assertNotIn(email_confirmed, self.user.confirmed_emails)
 
 class PrimaryEmailTestCase(TestCase):
 

@@ -75,9 +75,9 @@ class SimpleEmailConfirmationUserMixin(object):
         address_qs = self.email_address_set.filter(confirmed_at__isnull=True)
         return [address.email for address in address_qs]
 
-    def confirm_email(self, confirmation_key):
+    def confirm_email(self, confirmation_key, save=True):
         "Attempt to confirm an email using the given key"
-        self.email_address_set.confirm(confirmation_key)
+        self.email_address_set.confirm(confirmation_key, save=save)
 
     def add_unconfirmed_email(self, email):
         "Adds an unconfirmed email address and returns it's confirmation key"
@@ -117,7 +117,7 @@ class EmailAddressManager(models.Manager):
         unconfirmed_email_created.send(sender=user, email=email)
         return address
 
-    def confirm(self, key, user=None):
+    def confirm(self, key, user=None, save=True):
         "Confirm an email address"
         queryset = self.all()
         if user:
@@ -129,8 +129,9 @@ class EmailAddressManager(models.Manager):
 
         if not address.is_confirmed:
             address.confirmed_at = now()
-            address.save(update_fields=['confirmed_at'])
-            email_confirmed.send(sender=address.user, email=address.email)
+            if save:
+                address.save(update_fields=['confirmed_at'])
+                email_confirmed.send(sender=address.user, email=address.email)
 
         return address.user
 

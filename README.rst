@@ -36,7 +36,7 @@ Create a new User, confirm their email:
     send_email(email, 'Use %s to confirm your email' % user.confirmation_key)
     # User gets email, passes the confirmation_key back to your server
 
-    user.confirm_email(confirmation_key)
+    user.confirm_email(user.confirmation_key)
     user.is_confirmed # True
 
 Add another email to an existing User, confirm it, then set it as their primary.
@@ -86,7 +86,7 @@ Installation
         class User(SimpleEmailConfirmationUserMixin, AbstractUser):
             pass
 
-    Note: you don't strictly have to do this step. Without this, you won't have the nice helper functions and properties on your `User` objects but the remainder of the app should function fine.
+    Note: you don't strictly have to do this final step. Without this, you won't have the nice helper functions and properties on your `User` objects but the remainder of the app should function fine.
 
 
 Running the Tests

@@ -28,6 +28,7 @@ setup(
     license='BSD',
     packages=[
         'simple_email_confirmation',
+        'simple_email_confirmation.migrations',
         'simple_email_confirmation.test_project',
         'simple_email_confirmation.test_project.apps.test_app',
     ],

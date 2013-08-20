@@ -46,6 +46,7 @@ class EmailConfirmationTestCase(TestCase):
 
         address = self.user.email_address_set.get(email=email)
         self.assertFalse(address.is_confirmed)
+        self.assertEqual(address.confirmed_at, None)
 
     def test_reset_confirmation(self):
         "Reset a confirmation key"
@@ -76,6 +77,7 @@ class EmailConfirmationTestCase(TestCase):
         self.user.confirm_email(self.user.confirmation_key)
 
         self.assertTrue(self.user.is_confirmed)
+        self.assertTrue(self.user.confirmed_at)
         self.assertIn(self.user.email, self.user.confirmed_emails)
         self.assertNotIn(self.user.email, self.user.unconfirmed_emails)
 

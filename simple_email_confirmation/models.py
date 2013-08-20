@@ -53,6 +53,12 @@ class SimpleEmailConfirmationUserMixin(object):
         return self.get_primary_email() in self.confirmed_emails
 
     @property
+    def confirmed_at(self):
+        "When the User's primary email address was confirmed, or None"
+        address = self.email_address_set.get(email=self.get_primary_email())
+        return address.confirmed_at
+
+    @property
     def confirmation_key(self):
         "Confirmation key for the User's primary email"
         email = self.get_primary_email()

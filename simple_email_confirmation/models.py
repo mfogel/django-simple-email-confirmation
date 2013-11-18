@@ -60,7 +60,11 @@ class SimpleEmailConfirmationUserMixin(object):
 
     def get_confirmation_key(self, email):
         "Get the confirmation key for an email"
-        address = self.email_address_set.get(email=email)
+        try:
+            address = self.email_address_set.get(email=email)
+        except EmailAddress.DoesNotExist:
+            address = self.email_address_set.create(
+                email=email, key=self.email_address_set.generate_key())
         return address.key
 
     @property

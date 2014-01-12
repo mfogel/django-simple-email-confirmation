@@ -72,7 +72,7 @@ Installation
 
         INSTALLED_APPS = (
             ...
-            simple_email_confirmation,
+            'simple_email_confirmation',
             ...
         )
 

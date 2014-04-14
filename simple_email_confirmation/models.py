@@ -214,7 +214,10 @@ if getattr(settings, 'SIMPLE_EMAIL_CONFIRMATION_AUTO_ADD', True):
                 email = user.get_primary_email()
             else:
                 email = user.email
-            user.add_unconfirmed_email(email)
+            if hasattr(user, 'add_unconfirmed_email'):
+                user.add_unconfirmed_email(email)
+            else:
+                user.email_address_set.create_unconfirmed(email)
 
     # TODO: try to only connect this to the User model. We can't use
     #       get_user_model() here - results in import loop.

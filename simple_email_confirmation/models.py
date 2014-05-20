@@ -89,11 +89,19 @@ class SimpleEmailConfirmationUserMixin(object):
         address = self.email_address_set.confirm(confirmation_key, save=save)
         return address.email
 
-    def add_unconfirmed_email(self, email):
+    def add_unconfirmed_email(self, email, key_length=None):
         "Adds an unconfirmed email address and returns it's confirmation key"
         # if email already exists, let exception be thrown
         address = self.email_address_set.create_unconfirmed(email)
         return address.key
+
+    def add_email(self, email, confirmed=False, key_length=None):
+        """Adds an email. If email was confirmed in some other way pass `confirmed=True`"""
+        if confirmed:
+            return EmailAddress.objects.create(
+                user=self, email=email, confirmed_at=now(),
+                key=EmailAddress.objects.generate_key(key_length=key_length))
+        return self.add_unconfirmed_email(email, key_length=key_length)
 
     def reset_email_confirmation(self, email):
         "Reset the expiration of an email confirmation"
@@ -111,10 +119,13 @@ class SimpleEmailConfirmationUserMixin(object):
 
 class EmailAddressManager(models.Manager):
 
-    def generate_key(self):
+    def generate_key(self, key_length=None):
         "Generate a new random key and return it"
         # sticking with the django defaults
-        return get_random_string()
+        if key_length is None:
+            return get_random_string()
+        length = min(key_length, 40) # make sure it fits in the field
+        return get_random_string(length=length)
 
     def create_unconfirmed(self, email, user=None):
         "Create an email confirmation obj from the given email address obj"
@@ -196,7 +207,7 @@ class EmailAddress(models.Model):
     def reset_confirmation(self):
         """
         Re-generate the confirmation key and key expiration associated
-        with this email.  Note that the previou confirmation key will
+        with this email.  Note that the previous confirmation key will
         cease to work.
         """
         self.key = self._default_manager.generate_key()

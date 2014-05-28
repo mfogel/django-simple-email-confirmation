@@ -92,16 +92,13 @@ class SimpleEmailConfirmationUserMixin(object):
     def add_unconfirmed_email(self, email, key_length=None):
         "Adds an unconfirmed email address and returns it's confirmation key"
         # if email already exists, let exception be thrown
-        address = self.email_address_set.create_unconfirmed(email)
+        address = self.email_address_set.create_unconfirmed(email, key_length=key_length)
         return address.key
 
-    def add_email(self, email, confirmed=False, key_length=None):
+    def add_confirmed_email(self, email):
         """Adds an email. If email was confirmed in some other way pass `confirmed=True`"""
-        if confirmed:
-            return EmailAddress.objects.create(
-                user=self, email=email, confirmed_at=now(),
-                key=EmailAddress.objects.generate_key(key_length=key_length))
-        return self.add_unconfirmed_email(email, key_length=key_length)
+        address = self.email_address_set.create_confirmed(email)
+        return address.key
 
     def reset_email_confirmation(self, email):
         "Reset the expiration of an email confirmation"
@@ -127,12 +124,20 @@ class EmailAddressManager(models.Manager):
         length = min(key_length, 40) # make sure it fits in the field
         return get_random_string(length=length)
 
-    def create_unconfirmed(self, email, user=None):
+    def create_confirmed(self, email, user=None):
         "Create an email confirmation obj from the given email address obj"
         user = user or self.instance
         if not user:
             raise ValueError('Must specify user or call from related manager')
-        key = self.generate_key()
+        return self.create(
+            user=user, email=email, confirmed_at=now(), key=self.generate_key())
+
+    def create_unconfirmed(self, email, user=None, key_length=None):
+        "Create an email confirmation obj from the given email address obj"
+        user = user or self.instance
+        if not user:
+            raise ValueError('Must specify user or call from related manager')
+        key = self.generate_key(key_length=key_length)
         # let email-already-exists exception propogate through
         address = self.create(user=user, email=email, key=key)
         unconfirmed_email_created.send(sender=user, email=email)

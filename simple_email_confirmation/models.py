@@ -92,11 +92,15 @@ class SimpleEmailConfirmationUserMixin(object):
     def add_unconfirmed_email(self, email, key_length=None):
         "Adds an unconfirmed email address and returns it's confirmation key"
         # if email already exists, let exception be thrown
-        address = self.email_address_set.create_unconfirmed(email, key_length=key_length)
+        address = self.email_address_set.create_unconfirmed(
+            email, key_length=key_length)
         return address.key
 
     def add_confirmed_email(self, email):
-        """Adds an email. If email was confirmed in some other way pass `confirmed=True`"""
+        """
+        Adds a confirmed email in some in case it was confirmed in some other way
+
+        """
         address = self.email_address_set.create_confirmed(email)
         return address.key
 
@@ -106,7 +110,7 @@ class SimpleEmailConfirmationUserMixin(object):
         address.reset_confirmation()
 
     def remove_email(self, email):
-        "Remove an email address and returns it's confirmation key"
+        "Remove an email address and return it's confirmation key"
         # if email already exists, let exception be thrown
         if email == self.get_primary_email():
             raise EmailIsPrimary()
@@ -126,7 +130,7 @@ class EmailAddressManager(models.Manager):
 
     def create_confirmed(self, email, user=None):
         "Create an email confirmation obj from the given email address obj"
-        user = user or self.instance
+        user = user or getattr(self, 'instance', None)
         if not user:
             raise ValueError('Must specify user or call from related manager')
         return self.create(
@@ -134,7 +138,7 @@ class EmailAddressManager(models.Manager):
 
     def create_unconfirmed(self, email, user=None, key_length=None):
         "Create an email confirmation obj from the given email address obj"
-        user = user or self.instance
+        user = user or getattr(self, 'instance', None)
         if not user:
             raise ValueError('Must specify user or call from related manager')
         key = self.generate_key(key_length=key_length)

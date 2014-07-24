@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models.signals import post_save
 from django.utils.crypto import get_random_string
-from django.utils.timezone import now
+from django.utils import timezone
 
 from .exceptions import (
     EmailConfirmationExpired, EmailIsPrimary, EmailNotConfirmed,
@@ -100,6 +100,12 @@ class SimpleEmailConfirmationUserMixin(object):
         address = self.email_address_set.confirm(confirmation_key, save=save)
         return address.email
 
+    def add_confirmed_email(self, email):
+        "Adds an email to the user that's already in the confirmed state"
+        # if email already exists, let exception be thrown
+        address = self.email_address_set.create_confirmed(email)
+        return address.key
+
     def add_unconfirmed_email(self, email):
         "Adds an unconfirmed email address and returns it's confirmation key"
         # if email already exists, let exception be thrown
@@ -127,8 +133,21 @@ class EmailAddressManager(models.Manager):
         # sticking with the django defaults
         return get_random_string()
 
+    def create_confirmed(self, email, user=None):
+        "Create an email address in the confirmed state"
+        user = user or self.instance
+        if not user:
+            raise ValueError('Must specify user or call from related manager')
+        key = self.generate_key()
+        now = timezone.now()
+        # let email-already-exists exception propogate through
+        address = self.create(
+            user=user, email=email, key=key, set_at=now, confirmed_at=now,
+        )
+        return address
+
     def create_unconfirmed(self, email, user=None):
-        "Create an email confirmation obj from the given email address obj"
+        "Create an email address in the unconfirmed state"
         user = user or self.instance
         if not user:
             raise ValueError('Must specify user or call from related manager')
@@ -149,7 +168,7 @@ class EmailAddressManager(models.Manager):
             raise EmailConfirmationExpired()
 
         if not address.is_confirmed:
-            address.confirmed_at = now()
+            address.confirmed_at = timezone.now()
             if save:
                 address.save(update_fields=['confirmed_at'])
                 email_confirmed.send(sender=address.user, email=address.email)
@@ -167,7 +186,7 @@ class EmailAddress(models.Model):
     key = models.CharField(max_length=40, unique=True)
 
     set_at = models.DateTimeField(
-        default=lambda: now(),
+        default=lambda: timezone.now(),
         help_text='When the confirmation key expiration was set',
     )
     confirmed_at = models.DateTimeField(
@@ -202,7 +221,7 @@ class EmailAddress(models.Model):
 
     @property
     def is_key_expired(self):
-        return bool(self.key_expires_at and now() >= self.key_expires_at)
+        return self.key_expires_at and timezone.now() >= self.key_expires_at
 
     def reset_confirmation(self):
         """
@@ -211,7 +230,8 @@ class EmailAddress(models.Model):
         cease to work.
         """
         self.key = self._default_manager.generate_key()
-        self.set_at = now()
+        self.set_at = timezone.now()
+
         self.confirmed_at = None
         self.save(update_fields=['key', 'set_at', 'confirmed_at'])
 

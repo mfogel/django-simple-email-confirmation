@@ -202,3 +202,53 @@ class PrimaryEmailTestCase(TestCase):
 
         with self.assertRaises(EmailNotConfirmed):
             self.user.set_primary_email(email)
+
+
+class AddEmailIfNotExistsTestCase(TestCase):
+
+    def setUp(self):
+        self.email1 = 'e1@go.com'
+        self.email2 = 'e2@go.com'
+        self.email3 = 'e3@go.com'
+        self.email4 = 'e4@go.com'
+
+        # adds this email as an unconfirmed email
+        self.user = get_user_model().objects.create_user(
+            'uname', email=self.email1
+        )
+
+    def test_add_new_unconfirmed_email(self):
+        result = self.user.add_email_if_not_exists(self.email2)
+
+        self.assertEqual(self.user.email_address_set.count(), 2)
+        address = self.user.email_address_set.get(key=result)
+        self.assertEqual(address.email, self.email2)
+        self.assertEqual(address.is_confirmed, False)
+
+    def test_add_old_unconfirmed_email(self):
+        self.user.add_unconfirmed_email(self.email2)
+        self.user.add_unconfirmed_email(self.email3)
+
+        address = self.user.email_address_set.get(email=self.email2)
+        org_key, org_at = address.key, address.set_at
+
+        sleep(0.1)
+        result = self.user.add_email_if_not_exists(self.email2)
+
+        self.assertEqual(self.user.email_address_set.count(), 3)
+        address = self.user.email_address_set.get(key=result)
+        self.assertEqual(address.email, self.email2)
+        self.assertEqual(address.is_confirmed, False)
+        self.assertNotEqual(address.key, org_key)
+        self.assertGreater(address.set_at, org_at)
+
+    def test_add_confirmed_email(self):
+        self.user.add_confirmed_email(self.email2)
+        self.user.add_confirmed_email(self.email3)
+
+        result = self.user.add_email_if_not_exists(self.email2)
+
+        self.assertEqual(self.user.email_address_set.count(), 3)
+        address = self.user.email_address_set.get(key=result)
+        self.assertEqual(address.email, self.email2)
+        self.assertEqual(address.is_confirmed, True)

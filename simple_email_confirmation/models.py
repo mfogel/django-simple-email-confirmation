@@ -112,6 +112,26 @@ class SimpleEmailConfirmationUserMixin(object):
         address = self.email_address_set.create_unconfirmed(email)
         return address.key
 
+    def add_email_if_not_exists(self, email):
+        """
+        If the user already has the email, and it's confirmed, do nothing
+        and return None.
+
+        If the user already has the email, and it's unconfirmed, reset the
+        confirmation. If the confirmation is unexpired, do nothing. Return
+        the confirmation key of the email.
+        """
+        try:
+            address = self.email_address_set.get(email=email)
+        except EmailAddress.DoesNotExist:
+            key = self.add_unconfirmed_email(email)
+        else:
+            if not address.is_confirmed:
+                address.reset_confirmation()
+            key = address.key
+
+        return key
+
     def reset_email_confirmation(self, email):
         "Reset the expiration of an email confirmation"
         address = self.email_address_set.get(email=email)

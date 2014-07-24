@@ -1,11 +1,9 @@
-from __future__ import unicode_literals
-
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models.signals import post_save
 from django.utils.crypto import get_random_string
-from django.utils.timezone import now
+from django.utils import timezone
 
 from .exceptions import (
     EmailConfirmationExpired, EmailIsPrimary, EmailNotConfirmed,
@@ -60,23 +58,36 @@ class SimpleEmailConfirmationUserMixin(object):
 
     @property
     def confirmation_key(self):
-        "Confirmation key for the User's primary email"
+        """
+        Confirmation key for the User's primary email
+
+        DEPRECATED. Use get_confirmation_key() instead.
+        """
         email = self.get_primary_email()
         return self.get_confirmation_key(email)
 
-    def get_confirmation_key(self, email):
+    @property
+    def confirmed_emails(self):
+        "DEPRECATED. Use get_confirmed_emails() instead."
+        return self.get_confirmed_emails()
+
+    @property
+    def unconfirmed_emails(self):
+        "DEPRECATED. Use get_unconfirmed_emails() instead."
+        return self.get_unconfirmed_emails()
+
+    def get_confirmation_key(self, email=None):
         "Get the confirmation key for an email"
+        email = email or self.get_primary_email()
         address = self.email_address_set.get(email=email)
         return address.key
 
-    @property
-    def confirmed_emails(self):
+    def get_confirmed_emails(self):
         "List of emails this User has confirmed"
         address_qs = self.email_address_set.filter(confirmed_at__isnull=False)
         return [address.email for address in address_qs]
 
-    @property
-    def unconfirmed_emails(self):
+    def get_unconfirmed_emails(self):
         "List of emails this User has been associated with but not confirmed"
         address_qs = self.email_address_set.filter(confirmed_at__isnull=True)
         return [address.email for address in address_qs]
@@ -89,7 +100,17 @@ class SimpleEmailConfirmationUserMixin(object):
         address = self.email_address_set.confirm(confirmation_key, save=save)
         return address.email
 
+<<<<<<< HEAD
     def add_unconfirmed_email(self, email, key_length=None):
+=======
+    def add_confirmed_email(self, email):
+        "Adds an email to the user that's already in the confirmed state"
+        # if email already exists, let exception be thrown
+        address = self.email_address_set.create_confirmed(email)
+        return address.key
+
+    def add_unconfirmed_email(self, email):
+>>>>>>> upstream/develop
         "Adds an unconfirmed email address and returns it's confirmation key"
         # if email already exists, let exception be thrown
         address = self.email_address_set.create_unconfirmed(
@@ -104,13 +125,38 @@ class SimpleEmailConfirmationUserMixin(object):
         address = self.email_address_set.create_confirmed(email)
         return address.key
 
+    def add_email_if_not_exists(self, email):
+        """
+        If the user already has the email, and it's confirmed, do nothing
+        and return None.
+
+        If the user already has the email, and it's unconfirmed, reset the
+        confirmation. If the confirmation is unexpired, do nothing. Return
+        the confirmation key of the email.
+        """
+        try:
+            address = self.email_address_set.get(email=email)
+        except EmailAddress.DoesNotExist:
+            key = self.add_unconfirmed_email(email)
+        else:
+            if not address.is_confirmed:
+                key = address.reset_confirmation()
+            else:
+                key = None
+
+        return key
+
     def reset_email_confirmation(self, email):
         "Reset the expiration of an email confirmation"
         address = self.email_address_set.get(email=email)
-        address.reset_confirmation()
+        return address.reset_confirmation()
 
     def remove_email(self, email):
+<<<<<<< HEAD
         "Remove an email address and return it's confirmation key"
+=======
+        "Remove an email address"
+>>>>>>> upstream/develop
         # if email already exists, let exception be thrown
         if email == self.get_primary_email():
             raise EmailIsPrimary()
@@ -136,9 +182,28 @@ class EmailAddressManager(models.Manager):
         return self.create(
             user=user, email=email, confirmed_at=now(), key=self.generate_key())
 
+<<<<<<< HEAD
     def create_unconfirmed(self, email, user=None, key_length=None):
         "Create an email confirmation obj from the given email address obj"
         user = user or getattr(self, 'instance', None)
+=======
+    def create_confirmed(self, email, user=None):
+        "Create an email address in the confirmed state"
+        user = user or self.instance
+        if not user:
+            raise ValueError('Must specify user or call from related manager')
+        key = self.generate_key()
+        now = timezone.now()
+        # let email-already-exists exception propogate through
+        address = self.create(
+            user=user, email=email, key=key, set_at=now, confirmed_at=now,
+        )
+        return address
+
+    def create_unconfirmed(self, email, user=None):
+        "Create an email address in the unconfirmed state"
+        user = user or self.instance
+>>>>>>> upstream/develop
         if not user:
             raise ValueError('Must specify user or call from related manager')
         key = self.generate_key(key_length=key_length)
@@ -158,7 +223,7 @@ class EmailAddressManager(models.Manager):
             raise EmailConfirmationExpired()
 
         if not address.is_confirmed:
-            address.confirmed_at = now()
+            address.confirmed_at = timezone.now()
             if save:
                 address.save(update_fields=['confirmed_at'])
                 email_confirmed.send(sender=address.user, email=address.email)
@@ -176,7 +241,7 @@ class EmailAddress(models.Model):
     key = models.CharField(max_length=40, unique=True)
 
     set_at = models.DateTimeField(
-        default=lambda: now(),
+        default=lambda: timezone.now(),
         help_text='When the confirmation key expiration was set',
     )
     confirmed_at = models.DateTimeField(
@@ -190,7 +255,7 @@ class EmailAddress(models.Model):
         unique_together = (('user', 'email'),)
 
     def __unicode__(self):
-        return '{} ({})'.format(self.email, self.user)
+        return u'{} <{}>'.format(self.user, self.email)
 
     @property
     def is_confirmed(self):
@@ -211,7 +276,7 @@ class EmailAddress(models.Model):
 
     @property
     def is_key_expired(self):
-        return bool(self.key_expires_at and now() >= self.key_expires_at)
+        return self.key_expires_at and timezone.now() >= self.key_expires_at
 
     def reset_confirmation(self):
         """
@@ -220,9 +285,11 @@ class EmailAddress(models.Model):
         cease to work.
         """
         self.key = self._default_manager.generate_key()
-        self.set_at = now()
+        self.set_at = timezone.now()
+
         self.confirmed_at = None
         self.save(update_fields=['key', 'set_at', 'confirmed_at'])
+        return self.key
 
 
 # by default, auto-add unconfirmed EmailAddress objects for new Users

@@ -32,6 +32,7 @@ class EmailConfirmationTestCase(TestCase):
         self.assertNotEqual(key2, key3)
         self.assertNotEqual(key1, key3)
 
+<<<<<<< HEAD
     def test_error_create_no_user(self):
         email = 'test@test.test'
         self.assertRaises(ValueError, EmailAddress.objects.create_confirmed, email)
@@ -46,6 +47,17 @@ class EmailConfirmationTestCase(TestCase):
 
         address = self.user.email_address_set.get(email=email)
         self.assertTrue(address.is_confirmed)
+=======
+    def test_create_confirmed(self):
+        "Add an unconfirmed email for a User"
+        email = 'test@test.test'
+
+        key = self.user.add_confirmed_email(email)
+
+        address = self.user.email_address_set.get(email=email)
+        self.assertTrue(address.is_confirmed)
+        self.assertEqual(address.key, key)
+>>>>>>> upstream/develop
 
     def test_create_unconfirmed(self):
         "Add an unconfirmed email for a User"
@@ -57,11 +69,12 @@ class EmailConfirmationTestCase(TestCase):
             self.assertEqual(email, kwargs.get('email'))
         unconfirmed_email_created.connect(listener)
 
-        self.user.add_unconfirmed_email(email)
+        key = self.user.add_unconfirmed_email(email)
 
         address = self.user.email_address_set.get(email=email)
         self.assertFalse(address.is_confirmed)
         self.assertEqual(address.confirmed_at, None)
+        self.assertEqual(address.key, key)
 
     def test_create_unconfirmed_custom_key_length(self):
         """
@@ -102,31 +115,30 @@ class EmailConfirmationTestCase(TestCase):
             self.assertEqual(kwargs.get('email'), self.user.email)
         email_confirmed.connect(listener)
 
-        self.user.confirm_email(self.user.confirmation_key)
+        self.user.confirm_email(self.user.get_confirmation_key())
 
         self.assertTrue(self.user.is_confirmed)
         self.assertTrue(self.user.confirmed_at)
-        self.assertIn(self.user.email, self.user.confirmed_emails)
-        self.assertNotIn(self.user.email, self.user.unconfirmed_emails)
+        self.assertIn(self.user.email, self.user.get_confirmed_emails())
+        self.assertNotIn(self.user.email, self.user.get_unconfirmed_emails())
 
-        self.assertNotIn(email1, self.user.confirmed_emails)
-        self.assertNotIn(email2, self.user.confirmed_emails)
-        self.assertNotIn(email3, self.user.confirmed_emails)
-        self.assertIn(email1, self.user.unconfirmed_emails)
-        self.assertIn(email2, self.user.unconfirmed_emails)
-        self.assertIn(email3, self.user.unconfirmed_emails)
+        self.assertNotIn(email1, self.user.get_confirmed_emails())
+        self.assertNotIn(email2, self.user.get_confirmed_emails())
+        self.assertNotIn(email3, self.user.get_confirmed_emails())
+        self.assertIn(email1, self.user.get_unconfirmed_emails())
+        self.assertIn(email2, self.user.get_unconfirmed_emails())
+        self.assertIn(email3, self.user.get_unconfirmed_emails())
 
     def test_confirm_previously_confirmed_confirmation(self):
         "Re-confirm an confirmation that was already confirmed"
         email = 't@t.t'
-        key = self.user.add_unconfirmed_email(email)
-        self.user.confirm_email(key)
+        key = self.user.add_confirmed_email(email)
         at_before = self.user.email_address_set.get(email=email).confirmed_at
 
         self.user.confirm_email(key)
         at_after = self.user.email_address_set.get(email=email).confirmed_at
 
-        self.assertIn(email, self.user.confirmed_emails)
+        self.assertIn(email, self.user.get_confirmed_emails())
         self.assertEqual(at_after, at_before)
 
     @override_settings(SIMPLE_EMAIL_CONFIRMATION_PERIOD=timedelta(weeks=1))
@@ -157,11 +169,10 @@ class EmailConfirmationTestCase(TestCase):
         email_confirmed = 'confirmed@t.t'
 
         self.user.add_unconfirmed_email(email_unconfirmed)
-        key = self.user.add_unconfirmed_email(email_confirmed)
-        self.user.confirm_email(key)
+        self.user.add_confirmed_email(email_confirmed)
 
-        self.assertIn(email_confirmed, self.user.confirmed_emails)
-        self.assertIn(email_unconfirmed, self.user.unconfirmed_emails)
+        self.assertIn(email_confirmed, self.user.get_confirmed_emails())
+        self.assertIn(email_unconfirmed, self.user.get_unconfirmed_emails())
 
         # can't remove the primary
         with self.assertRaises(EmailIsPrimary):
@@ -169,11 +180,12 @@ class EmailConfirmationTestCase(TestCase):
 
         # can remove the unconfirmed
         self.user.remove_email(email_unconfirmed)
-        self.assertNotIn(email_unconfirmed, self.user.unconfirmed_emails)
+        self.assertNotIn(email_unconfirmed, self.user.get_unconfirmed_emails())
 
         # can remove the confirmed
         self.user.remove_email(email_confirmed)
-        self.assertNotIn(email_confirmed, self.user.confirmed_emails)
+        self.assertNotIn(email_confirmed, self.user.get_confirmed_emails())
+
 
 class PrimaryEmailTestCase(TestCase):
 
@@ -185,13 +197,11 @@ class PrimaryEmailTestCase(TestCase):
         "Set an email to priamry"
         # set up two emails, confirm them post
         email1 = '1@t.t'
-        key1 = self.user.add_unconfirmed_email(email1)
-        self.user.confirm_email(key1)
+        self.user.add_confirmed_email(email1)
         self.user.set_primary_email(email1)
 
         email2 = '2@t.t'
-        key2 = self.user.add_unconfirmed_email(email2)
-        self.user.confirm_email(key2)
+        self.user.add_confirmed_email(email2)
 
         # assert signal fires as expected
         def listener(sender, **kwargs):
@@ -210,8 +220,7 @@ class PrimaryEmailTestCase(TestCase):
             'myname', email='somebody@important.com',
         )
         email = '1@t.t'
-        key = other_user.add_unconfirmed_email(email)
-        other_user.confirm_email(key)
+        other_user.add_confirmed_email(email)
 
         with self.assertRaises(EmailNotConfirmed):
             self.user.set_primary_email(email)
@@ -223,3 +232,53 @@ class PrimaryEmailTestCase(TestCase):
 
         with self.assertRaises(EmailNotConfirmed):
             self.user.set_primary_email(email)
+
+
+class AddEmailIfNotExistsTestCase(TestCase):
+
+    def setUp(self):
+        self.email1 = 'e1@go.com'
+        self.email2 = 'e2@go.com'
+        self.email3 = 'e3@go.com'
+        self.email4 = 'e4@go.com'
+
+        # adds this email as an unconfirmed email
+        self.user = get_user_model().objects.create_user(
+            'uname', email=self.email1
+        )
+
+    def test_add_new_unconfirmed_email(self):
+        result = self.user.add_email_if_not_exists(self.email2)
+
+        self.assertEqual(self.user.email_address_set.count(), 2)
+        address = self.user.email_address_set.get(key=result)
+        self.assertEqual(address.email, self.email2)
+        self.assertEqual(address.is_confirmed, False)
+
+    def test_add_old_unconfirmed_email(self):
+        self.user.add_unconfirmed_email(self.email2)
+        self.user.add_unconfirmed_email(self.email3)
+
+        address = self.user.email_address_set.get(email=self.email2)
+        org_key, org_at = address.key, address.set_at
+
+        sleep(0.1)
+        result = self.user.add_email_if_not_exists(self.email2)
+
+        self.assertEqual(self.user.email_address_set.count(), 3)
+        address = self.user.email_address_set.get(key=result)
+        self.assertEqual(address.email, self.email2)
+        self.assertEqual(address.is_confirmed, False)
+        self.assertNotEqual(address.key, org_key)
+        self.assertGreater(address.set_at, org_at)
+
+    def test_add_confirmed_email(self):
+        self.user.add_confirmed_email(self.email2)
+        self.user.add_confirmed_email(self.email3)
+
+        result = self.user.add_email_if_not_exists(self.email2)
+
+        self.assertIsNone(result)
+        self.assertEqual(self.user.email_address_set.count(), 3)
+        address = self.user.email_address_set.get(email=self.email2)
+        self.assertEqual(address.is_confirmed, True)

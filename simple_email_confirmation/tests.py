@@ -32,22 +32,12 @@ class EmailConfirmationTestCase(TestCase):
         self.assertNotEqual(key2, key3)
         self.assertNotEqual(key1, key3)
 
-<<<<<<< HEAD
     def test_error_create_no_user(self):
         email = 'test@test.test'
         self.assertRaises(ValueError, EmailAddress.objects.create_confirmed, email)
         self.assertRaises(ValueError, EmailAddress.objects.create_unconfirmed, email)
 
 
-    def test_create_confirmed(self):
-        "Add a confirmed email for a User"
-        email = 'test@test.test'
-
-        self.user.add_confirmed_email(email)
-
-        address = self.user.email_address_set.get(email=email)
-        self.assertTrue(address.is_confirmed)
-=======
     def test_create_confirmed(self):
         "Add an unconfirmed email for a User"
         email = 'test@test.test'
@@ -57,7 +47,6 @@ class EmailConfirmationTestCase(TestCase):
         address = self.user.email_address_set.get(email=email)
         self.assertTrue(address.is_confirmed)
         self.assertEqual(address.key, key)
->>>>>>> upstream/develop
 
     def test_create_unconfirmed(self):
         "Add an unconfirmed email for a User"

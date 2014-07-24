@@ -100,29 +100,17 @@ class SimpleEmailConfirmationUserMixin(object):
         address = self.email_address_set.confirm(confirmation_key, save=save)
         return address.email
 
-<<<<<<< HEAD
-    def add_unconfirmed_email(self, email, key_length=None):
-=======
     def add_confirmed_email(self, email):
         "Adds an email to the user that's already in the confirmed state"
         # if email already exists, let exception be thrown
         address = self.email_address_set.create_confirmed(email)
         return address.key
 
-    def add_unconfirmed_email(self, email):
->>>>>>> upstream/develop
+    def add_unconfirmed_email(self, email, key_length=None):
         "Adds an unconfirmed email address and returns it's confirmation key"
         # if email already exists, let exception be thrown
         address = self.email_address_set.create_unconfirmed(
             email, key_length=key_length)
-        return address.key
-
-    def add_confirmed_email(self, email):
-        """
-        Adds a confirmed email in some in case it was confirmed in some other way
-
-        """
-        address = self.email_address_set.create_confirmed(email)
         return address.key
 
     def add_email_if_not_exists(self, email):
@@ -152,11 +140,7 @@ class SimpleEmailConfirmationUserMixin(object):
         return address.reset_confirmation()
 
     def remove_email(self, email):
-<<<<<<< HEAD
-        "Remove an email address and return it's confirmation key"
-=======
         "Remove an email address"
->>>>>>> upstream/develop
         # if email already exists, let exception be thrown
         if email == self.get_primary_email():
             raise EmailIsPrimary()
@@ -179,31 +163,15 @@ class EmailAddressManager(models.Manager):
         user = user or getattr(self, 'instance', None)
         if not user:
             raise ValueError('Must specify user or call from related manager')
-        return self.create(
-            user=user, email=email, confirmed_at=now(), key=self.generate_key())
-
-<<<<<<< HEAD
-    def create_unconfirmed(self, email, user=None, key_length=None):
-        "Create an email confirmation obj from the given email address obj"
-        user = user or getattr(self, 'instance', None)
-=======
-    def create_confirmed(self, email, user=None):
-        "Create an email address in the confirmed state"
-        user = user or self.instance
-        if not user:
-            raise ValueError('Must specify user or call from related manager')
-        key = self.generate_key()
         now = timezone.now()
         # let email-already-exists exception propogate through
-        address = self.create(
-            user=user, email=email, key=key, set_at=now, confirmed_at=now,
+        return self.create(
+            user=user, email=email, set_at=now, confirmed_at=now, key=self.generate_key()
         )
-        return address
 
-    def create_unconfirmed(self, email, user=None):
+    def create_unconfirmed(self, email, user=None, key_length=None):
         "Create an email address in the unconfirmed state"
-        user = user or self.instance
->>>>>>> upstream/develop
+        user = user or getattr(self, 'instance', None)
         if not user:
             raise ValueError('Must specify user or call from related manager')
         key = self.generate_key(key_length=key_length)

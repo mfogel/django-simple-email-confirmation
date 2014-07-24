@@ -127,15 +127,16 @@ class SimpleEmailConfirmationUserMixin(object):
             key = self.add_unconfirmed_email(email)
         else:
             if not address.is_confirmed:
-                address.reset_confirmation()
-            key = address.key
+                key = address.reset_confirmation()
+            else:
+                key = None
 
         return key
 
     def reset_email_confirmation(self, email):
         "Reset the expiration of an email confirmation"
         address = self.email_address_set.get(email=email)
-        address.reset_confirmation()
+        return address.reset_confirmation()
 
     def remove_email(self, email):
         "Remove an email address"
@@ -254,6 +255,7 @@ class EmailAddress(models.Model):
 
         self.confirmed_at = None
         self.save(update_fields=['key', 'set_at', 'confirmed_at'])
+        return self.key
 
 
 # by default, auto-add unconfirmed EmailAddress objects for new Users

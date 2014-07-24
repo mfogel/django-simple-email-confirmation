@@ -248,7 +248,7 @@ class AddEmailIfNotExistsTestCase(TestCase):
 
         result = self.user.add_email_if_not_exists(self.email2)
 
+        self.assertIsNone(result)
         self.assertEqual(self.user.email_address_set.count(), 3)
-        address = self.user.email_address_set.get(key=result)
-        self.assertEqual(address.email, self.email2)
+        address = self.user.email_address_set.get(email=self.email2)
         self.assertEqual(address.is_confirmed, True)

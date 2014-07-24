@@ -1,4 +1,4 @@
-__version__ = '0.10.2'
+__version__ = '0.11'
 
 from .models import SimpleEmailConfirmationUserMixin, EmailAddress
 from .signals import (

@@ -58,23 +58,36 @@ class SimpleEmailConfirmationUserMixin(object):
 
     @property
     def confirmation_key(self):
-        "Confirmation key for the User's primary email"
+        """
+        Confirmation key for the User's primary email
+
+        DEPRECATED. Use get_confirmation_key() instead.
+        """
         email = self.get_primary_email()
         return self.get_confirmation_key(email)
 
-    def get_confirmation_key(self, email):
+    @property
+    def confirmed_emails(self):
+        "DEPRECATED. Use get_confirmed_emails() instead."
+        return self.get_confirmed_emails()
+
+    @property
+    def unconfirmed_emails(self):
+        "DEPRECATED. Use get_unconfirmed_emails() instead."
+        return self.get_unconfirmed_emails()
+
+    def get_confirmation_key(self, email=None):
         "Get the confirmation key for an email"
+        email = email or self.get_primary_email()
         address = self.email_address_set.get(email=email)
         return address.key
 
-    @property
-    def confirmed_emails(self):
+    def get_confirmed_emails(self):
         "List of emails this User has confirmed"
         address_qs = self.email_address_set.filter(confirmed_at__isnull=False)
         return [address.email for address in address_qs]
 
-    @property
-    def unconfirmed_emails(self):
+    def get_unconfirmed_emails(self):
         "List of emails this User has been associated with but not confirmed"
         address_qs = self.email_address_set.filter(confirmed_at__isnull=True)
         return [address.email for address in address_qs]
@@ -99,7 +112,7 @@ class SimpleEmailConfirmationUserMixin(object):
         address.reset_confirmation()
 
     def remove_email(self, email):
-        "Remove an email address and returns it's confirmation key"
+        "Remove an email address"
         # if email already exists, let exception be thrown
         if email == self.get_primary_email():
             raise EmailIsPrimary()

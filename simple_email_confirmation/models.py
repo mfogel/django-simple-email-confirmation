@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
@@ -170,7 +168,7 @@ class EmailAddress(models.Model):
         unique_together = (('user', 'email'),)
 
     def __unicode__(self):
-        return '{} ({})'.format(self.email, self.user)
+        return u'{} <{}>'.format(self.user, self.email)
 
     @property
     def is_confirmed(self):

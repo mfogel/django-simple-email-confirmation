@@ -4,6 +4,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.utils.crypto import get_random_string
 from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 
 from .exceptions import (
     EmailConfirmationExpired, EmailIsPrimary, EmailNotConfirmed,
@@ -208,11 +209,11 @@ class EmailAddress(models.Model):
 
     set_at = models.DateTimeField(
         default=lambda: timezone.now(),
-        help_text='When the confirmation key expiration was set',
+        help_text=_('When the confirmation key expiration was set'),
     )
     confirmed_at = models.DateTimeField(
         blank=True, null=True,
-        help_text='First time this email was confirmed',
+        help_text=_('First time this email was confirmed'),
     )
 
     objects = EmailAddressManager()

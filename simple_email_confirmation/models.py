@@ -1,7 +1,5 @@
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.db import models
-from django.db.models.signals import post_save
 from django.utils.crypto import get_random_string
 from django.utils import timezone
 
@@ -256,17 +254,3 @@ class EmailAddress(models.Model):
         self.confirmed_at = None
         self.save(update_fields=['key', 'set_at', 'confirmed_at'])
         return self.key
-
-
-# by default, auto-add unconfirmed EmailAddress objects for new Users
-if getattr(settings, 'SIMPLE_EMAIL_CONFIRMATION_AUTO_ADD', True):
-    def auto_add(sender, **kwargs):
-        if sender == get_user_model() and kwargs['created']:
-            user = kwargs.get('instance')
-            email = user.get_primary_email()
-            user.add_unconfirmed_email(email)
-
-    # TODO: try to only connect this to the User model. We can't use
-    #       get_user_model() here - results in import loop.
-
-    post_save.connect(auto_add)

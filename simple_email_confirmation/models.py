@@ -220,6 +220,7 @@ class EmailAddress(models.Model):
 
     class Meta:
         unique_together = (('user', 'email'),)
+        verbose_name_plural = "email addresses"
 
     def __unicode__(self):
         return u'{} <{}>'.format(self.user, self.email)

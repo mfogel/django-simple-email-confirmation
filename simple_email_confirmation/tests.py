@@ -42,6 +42,13 @@ class EmailConfirmationTestCase(TestCase):
         self.assertTrue(address.is_confirmed)
         self.assertEqual(address.key, key)
 
+    def test_error_create_no_user(self):
+        email = 'test@test.test'
+        with self.assertRaises(ValueError):
+            EmailAddress.objects.create_confirmed(email)
+        with self.assertRaises(ValueError):
+            EmailAddress.objects.create_unconfirmed(email)
+
     def test_create_unconfirmed(self):
         "Add an unconfirmed email for a User"
         email = 'test@test.test'

@@ -157,7 +157,7 @@ class EmailAddressManager(models.Manager):
 
     def create_confirmed(self, email, user=None):
         "Create an email address in the confirmed state"
-        user = user or self.instance
+        user = user or getattr(self, 'instance', None)
         if not user:
             raise ValueError('Must specify user or call from related manager')
         key = self.generate_key()
@@ -170,7 +170,7 @@ class EmailAddressManager(models.Manager):
 
     def create_unconfirmed(self, email, user=None):
         "Create an email address in the unconfirmed state"
-        user = user or self.instance
+        user = user or getattr(self, 'instance', None)
         if not user:
             raise ValueError('Must specify user or call from related manager')
         key = self.generate_key()

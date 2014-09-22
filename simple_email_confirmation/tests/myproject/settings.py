@@ -8,17 +8,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/dev/ref/settings/
 """
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-import os
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-
-
-# add the apps dir to the path so our app imports work out
-import sys
-APPS_ROOT = os.path.join(BASE_DIR, 'test_project', 'apps')
-sys.path.insert(0, APPS_ROOT)
-
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/dev/howto/deployment/checklist/
 
@@ -43,7 +32,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'simple_email_confirmation',
-    'test_app',
+    'simple_email_confirmation.tests.myproject.myapp',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -66,7 +55,6 @@ WSGI_APPLICATION = 'project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
 
@@ -91,4 +79,4 @@ STATIC_URL = '/static/'
 
 
 # Custom user model
-AUTH_USER_MODEL = 'test_app.User'
+AUTH_USER_MODEL = 'myapp.User'

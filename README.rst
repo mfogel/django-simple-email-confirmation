@@ -98,7 +98,7 @@ Using `Doug Hellman's virtualenvwrapper`__:
 
     mktmpenv
     pip install django-simple-email-confirmation
-    export DJANGO_SETTINGS_MODULE=simple_email_confirmation.test_project.settings
+    export DJANGO_SETTINGS_MODULE=simple_email_confirmation.tests.myproject.settings
     django-admin.py test simple_email_confirmation
 
 

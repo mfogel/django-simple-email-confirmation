@@ -6,11 +6,11 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.test.utils import override_settings
 
-from .exceptions import (
+from ..exceptions import (
     EmailConfirmationExpired, EmailIsPrimary, EmailNotConfirmed,
 )
-from .models import EmailAddress
-from .signals import (
+from ..models import EmailAddress
+from ..signals import (
     email_confirmed, unconfirmed_email_created, primary_email_changed,
 )
 

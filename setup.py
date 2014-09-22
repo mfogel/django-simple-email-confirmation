@@ -29,8 +29,9 @@ setup(
     packages=[
         'simple_email_confirmation',
         'simple_email_confirmation.migrations',
-        'simple_email_confirmation.test_project',
-        'simple_email_confirmation.test_project.apps.test_app',
+        'simple_email_confirmation.tests',
+        'simple_email_confirmation.tests.myproject',
+        'simple_email_confirmation.tests.myproject.myapp',
     ],
     install_requires=['django>=1.5.0'],
     classifiers=[

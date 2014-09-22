@@ -92,14 +92,15 @@ Installation
 Running the Tests
 -----------------
 
-Using `Doug Hellman's virtualenvwrapper`__:
+#.  Install `tox`__.
 
-.. code:: sh
+#.  From the repository root, run
 
-    mktmpenv
-    pip install django-simple-email-confirmation
-    export DJANGO_SETTINGS_MODULE=simple_email_confirmation.tests.myproject.settings
-    django-admin.py test simple_email_confirmation
+    .. code:: sh
+
+        tox
+
+    It's that simple.
 
 
 Found a Bug?
@@ -118,7 +119,7 @@ __ http://pypi.python.org/pypi/django-simple-email-confirmation/
 __ http://www.pip-installer.org/
 __ https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 __ https://docs.djangoproject.com/en/dev/topics/auth/customizing/#specifying-a-custom-user-model
-__ http://www.doughellmann.com/projects/virtualenvwrapper/
+__ https://tox.readthedocs.org/
 __ https://github.com/mfogel/django-simple-email-confirmation
 __ https://github.com/pinax/django-email-confirmation
 __ https://github.com/jtauber/django-email-confirmation

@@ -210,7 +210,7 @@ class EmailAddress(models.Model):
     key = models.CharField(max_length=40, unique=True)
 
     set_at = models.DateTimeField(
-        default=lambda: timezone.now(),
+        default=timezone.now,
         help_text=_('When the confirmation key expiration was set'),
     )
     confirmed_at = models.DateTimeField(

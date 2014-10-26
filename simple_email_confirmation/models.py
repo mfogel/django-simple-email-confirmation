@@ -267,6 +267,9 @@ if getattr(settings, 'SIMPLE_EMAIL_CONFIRMATION_AUTO_ADD', True):
     def auto_add(sender, **kwargs):
         if sender == get_user_model() and kwargs['created']:
             user = kwargs.get('instance')
+            # softly failing on using these methods on `user` to support
+            # not using the SimpleEmailConfirmationMixin in your User model
+            # https://github.com/mfogel/django-simple-email-confirmation/pull/3
             if hasattr(user, 'get_primary_email'):
                 email = user.get_primary_email()
             else:

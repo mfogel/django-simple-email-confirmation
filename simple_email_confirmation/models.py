@@ -1,9 +1,12 @@
+from __future__ import unicode_literals
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models.signals import post_save
 from django.utils.crypto import get_random_string
 from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 
 from .exceptions import (
     EmailConfirmationExpired, EmailIsPrimary, EmailNotConfirmed,
@@ -156,7 +159,7 @@ class EmailAddressManager(models.Manager):
 
     def create_confirmed(self, email, user=None):
         "Create an email address in the confirmed state"
-        user = user or self.instance
+        user = user or getattr(self, 'instance', None)
         if not user:
             raise ValueError('Must specify user or call from related manager')
         key = self.generate_key()
@@ -169,7 +172,7 @@ class EmailAddressManager(models.Manager):
 
     def create_unconfirmed(self, email, user=None):
         "Create an email address in the unconfirmed state"
-        user = user or self.instance
+        user = user or getattr(self, 'instance', None)
         if not user:
             raise ValueError('Must specify user or call from related manager')
         key = self.generate_key()
@@ -207,21 +210,22 @@ class EmailAddress(models.Model):
     key = models.CharField(max_length=40, unique=True)
 
     set_at = models.DateTimeField(
-        default=lambda: timezone.now(),
-        help_text='When the confirmation key expiration was set',
+        default=timezone.now,
+        help_text=_('When the confirmation key expiration was set'),
     )
     confirmed_at = models.DateTimeField(
         blank=True, null=True,
-        help_text='First time this email was confirmed',
+        help_text=_('First time this email was confirmed'),
     )
 
     objects = EmailAddressManager()
 
     class Meta:
         unique_together = (('user', 'email'),)
+        verbose_name_plural = "email addresses"
 
     def __unicode__(self):
-        return u'{} <{}>'.format(self.user, self.email)
+        return '{} <{}>'.format(self.user, self.email)
 
     @property
     def is_confirmed(self):
@@ -263,8 +267,17 @@ if getattr(settings, 'SIMPLE_EMAIL_CONFIRMATION_AUTO_ADD', True):
     def auto_add(sender, **kwargs):
         if sender == get_user_model() and kwargs['created']:
             user = kwargs.get('instance')
-            email = user.get_primary_email()
-            user.add_unconfirmed_email(email)
+            # softly failing on using these methods on `user` to support
+            # not using the SimpleEmailConfirmationMixin in your User model
+            # https://github.com/mfogel/django-simple-email-confirmation/pull/3
+            if hasattr(user, 'get_primary_email'):
+                email = user.get_primary_email()
+            else:
+                email = user.email
+            if hasattr(user, 'add_unconfirmed_email'):
+                user.add_unconfirmed_email(email)
+            else:
+                user.email_address_set.create_unconfirmed(email)
 
     # TODO: try to only connect this to the User model. We can't use
     #       get_user_model() here - results in import loop.

@@ -2,11 +2,13 @@ import re
 from os import path
 from setuptools import setup
 
+
 # read() and find_version() taken from jezdez's python apps, ex:
 # https://github.com/jezdez/django_compressor/blob/develop/setup.py
 
 def read(*parts):
     return open(path.join(path.dirname(__file__), *parts)).read()
+
 
 def find_version(*file_paths):
     version_file = read(*file_paths)
@@ -16,6 +18,7 @@ def find_version(*file_paths):
     if version_match:
         return version_match.group(1)
     raise RuntimeError("Unable to find version string.")
+
 
 setup(
     name='django-simple-email-confirmation',
@@ -29,8 +32,10 @@ setup(
     packages=[
         'simple_email_confirmation',
         'simple_email_confirmation.migrations',
-        'simple_email_confirmation.test_project',
-        'simple_email_confirmation.test_project.apps.test_app',
+        'simple_email_confirmation.south_migrations',
+        'simple_email_confirmation.tests',
+        'simple_email_confirmation.tests.myproject',
+        'simple_email_confirmation.tests.myproject.myapp',
     ],
     install_requires=['django>=1.5.0'],
     classifiers=[
@@ -40,6 +45,13 @@ setup(
         'License :: OSI Approved :: BSD License',
         "Operating System :: OS Independent",
         "Programming Language :: Python",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 2.6",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.2",
+        "Programming Language :: Python :: 3.3",
+        "Programming Language :: Python :: 3.4",
         'Topic :: Utilities',
         "Framework :: Django",
     ]

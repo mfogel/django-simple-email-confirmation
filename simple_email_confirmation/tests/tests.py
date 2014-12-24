@@ -6,11 +6,11 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.test.utils import override_settings
 
-from .exceptions import (
+from ..exceptions import (
     EmailConfirmationExpired, EmailIsPrimary, EmailNotConfirmed,
 )
-from .models import EmailAddress
-from .signals import (
+from ..models import EmailAddress
+from ..signals import (
     email_confirmed, unconfirmed_email_created, primary_email_changed,
 )
 
@@ -41,6 +41,13 @@ class EmailConfirmationTestCase(TestCase):
         address = self.user.email_address_set.get(email=email)
         self.assertTrue(address.is_confirmed)
         self.assertEqual(address.key, key)
+
+    def test_error_create_no_user(self):
+        email = 'test@test.test'
+        with self.assertRaises(ValueError):
+            EmailAddress.objects.create_confirmed(email)
+        with self.assertRaises(ValueError):
+            EmailAddress.objects.create_unconfirmed(email)
 
     def test_create_unconfirmed(self):
         "Add an unconfirmed email for a User"

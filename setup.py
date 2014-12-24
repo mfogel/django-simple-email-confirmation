@@ -32,6 +32,7 @@ setup(
     packages=[
         'simple_email_confirmation',
         'simple_email_confirmation.migrations',
+        'simple_email_confirmation.south_migrations',
         'simple_email_confirmation.tests',
         'simple_email_confirmation.tests.myproject',
         'simple_email_confirmation.tests.myproject.myapp',

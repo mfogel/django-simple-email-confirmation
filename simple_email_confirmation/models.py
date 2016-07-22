@@ -254,7 +254,7 @@ class EmailAddress(models.Model):
         with this email.  Note that the previou confirmation key will
         cease to work.
         """
-        self.key = self._default_manager.generate_key()
+        self.key = EmailAddress._default_manager.generate_key()
         self.set_at = timezone.now()
 
         self.confirmed_at = None

@@ -1,3 +1,10 @@
+NOTE: This package is no longer maintained
+==========================================
+
+If you are a developer that is interested in taking over ownership of django-simple-email-confirmation, please contact me and I will transfer ownership of the `PYPI registration`__ of the package over to you. My email is listed in my `public github profile`__. Cheers.
+
+Original documentation follows:
+
 django-simple-email-confirmation
 ================================
 
@@ -112,6 +119,8 @@ Credits
 Originally adapted from `Pinax's django-email-confirmation`__, which was originally adapted from `James Tauber's django-email-confirmation`__.
 
 
+__ http://pypi.python.org/pypi/django-simple-email-confirmation/
+__ https://github.com/mfogel
 __ http://pypi.python.org/pypi/django-simple-email-confirmation/
 __ http://www.pip-installer.org/
 __ https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps

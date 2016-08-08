@@ -1,10 +1,3 @@
-NOTE: Maintenance of this package is transferring to a different owner
-======================================================================
-
-@mdamien kindly volunteered to transfer ownership and maintenance of this package to the good folks at `Jazzband`__. Transfer is in progress. I'll update this repo with links to the new master once the transfer is complete. Thanks for your patience. -- @mfogel
-
-Original documentation follows:
-
 django-simple-email-confirmation
 ================================
 
@@ -119,7 +112,6 @@ Credits
 Originally adapted from `Pinax's django-email-confirmation`__, which was originally adapted from `James Tauber's django-email-confirmation`__.
 
 
-__ https://jazzband.co/
 __ http://pypi.python.org/pypi/django-simple-email-confirmation/
 __ http://www.pip-installer.org/
 __ https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps

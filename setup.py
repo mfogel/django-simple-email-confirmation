@@ -37,7 +37,7 @@ setup(
         'simple_email_confirmation.tests.myproject',
         'simple_email_confirmation.tests.myproject.myapp',
     ],
-    install_requires=['django>=1.5.0'],
+    install_requires=['django>=1.7.0'],
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Environment :: Web Environment",

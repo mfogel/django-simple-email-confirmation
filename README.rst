@@ -26,6 +26,9 @@ Create a new User, confirm their email:
 
 .. code:: python
 
+    from django.core.mail import send_mail
+    # ...
+
     email = 'original@here.com'
     user = User.objects.create_user(email, email=email)
     user.is_confirmed # False

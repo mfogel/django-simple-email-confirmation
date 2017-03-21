@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if form.errors %}
+<p>{{ form.errors }}</p>
+{% endif %}
+
+<h3>Sign up</h3>
+<form method="post" action="">
+{% csrf_token %}
+{{ form.as_p }}
+<input type="submit" value="sign up" />
+<input type="hidden" name="next" value="{{ next }}" />
+</form>
+
+{% endblock %}

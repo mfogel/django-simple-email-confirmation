@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% for message in messages %}
+<p>{{ message }}</p>
+{% endfor %}
+
+<h3>Confirm key</h3>
+
+{% if form.errors %}
+<p>{{ form.errors }}</p>
+{% endif %}
+
+<form method="post" action="">
+{% csrf_token %}
+{{ form.as_p }}
+<input type="submit" value="sign up" />
+<input type="hidden" name="next" value="{{ next }}" />
+</form>
+
+{% endblock %}

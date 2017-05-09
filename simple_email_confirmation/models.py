@@ -199,6 +199,9 @@ class EmailAddressManager(models.Manager):
 
         return address
 
+    class Meta:
+        app_label = 'simple_email_confirmation'
+
 
 
 def get_user_primary_email(user):
@@ -233,6 +236,7 @@ class EmailAddress(models.Model):
     class Meta:
         unique_together = (('user', 'email'),)
         verbose_name_plural = "email addresses"
+        app_label = 'simple_email_confirmation'
 
     def __unicode__(self):
         return '{} <{}>'.format(self.user, self.email)

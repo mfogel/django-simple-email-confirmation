@@ -272,3 +272,25 @@ class AddEmailIfNotExistsTestCase(TestCase):
         self.assertEqual(self.user.email_address_set.count(), 3)
         address = self.user.email_address_set.get(email=self.email2)
         self.assertEqual(address.is_confirmed, True)
+
+
+class AutoAddTestCase(TestCase):
+
+    def setUp(self):
+        self.email = 'nobody@important.com'
+
+    def test_email_is_added_if_not_empty(self):
+        user = get_user_model().objects.create_user(
+            'uname', email=self.email
+        )
+        self.assertEqual(user.email_address_set.count(), 1)
+
+        email_address = user.email_address_set.first()
+        self.assertFalse(email_address.is_confirmed)
+        self.assertEqual(email_address.email, self.email)
+
+    def test_email_is_not_added_if_empty(self):
+        user = get_user_model().objects.create_user(
+            'uname'
+        )
+        self.assertEqual(user.email_address_set.count(), 0)

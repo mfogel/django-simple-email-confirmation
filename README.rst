@@ -92,11 +92,8 @@ Installation
 Python/Django supported versions
 --------------------------------
 
-The actual supported versions are, as tested via tox (defined in tox.ini):
-
-Python: 2.7 and 3.4 to 3.6
-Django: 1.8 to 1.11
-
+- Python: 2.7, 3.4, 3.5 and 3.6
+- Django: 1.8 to 1.11
 
 
 Running the Tests

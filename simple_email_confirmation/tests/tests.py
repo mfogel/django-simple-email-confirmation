@@ -219,9 +219,7 @@ class PrimaryEmailTestCase(TestCase):
     def test_getting_primary_email_without_mixin(self):
         "Try to get the primary email of a user model without the mixin"
         model = apps.get_model('myapp', 'UserWithoutMixin')
-        other_user = model.objects.create_user(
-            'myname', email='somebody@important.com',
-        )
+        other_user = model.objects.create(email='somebody@important.com')
         email = get_user_primary_email(other_user)
         self.assertEqual(email, other_user.email)
 

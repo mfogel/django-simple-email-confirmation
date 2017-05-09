@@ -200,6 +200,16 @@ class EmailAddressManager(models.Manager):
         return address
 
 
+
+def get_user_primary_email(user):
+    # softly failing on using these methods on `user` to support
+    # not using the SimpleEmailConfirmationMixin in your User model
+    # https://github.com/mfogel/django-simple-email-confirmation/pull/3
+    if hasattr(user, 'get_primary_email'):
+        return user.get_primary_email()
+    return user.email
+
+
 class EmailAddress(models.Model):
     "An email address belonging to a User"
 
@@ -233,7 +243,8 @@ class EmailAddress(models.Model):
 
     @property
     def is_primary(self):
-        return bool(self.user.email == self.email)
+        primary_email = get_user_primary_email(user)
+        return bool(primary_email == self.email)
 
     @property
     def key_expires_at(self):
@@ -267,13 +278,7 @@ if getattr(settings, 'SIMPLE_EMAIL_CONFIRMATION_AUTO_ADD', True):
     def auto_add(sender, **kwargs):
         if sender == get_user_model() and kwargs['created']:
             user = kwargs.get('instance')
-            # softly failing on using these methods on `user` to support
-            # not using the SimpleEmailConfirmationMixin in your User model
-            # https://github.com/mfogel/django-simple-email-confirmation/pull/3
-            if hasattr(user, 'get_primary_email'):
-                email = user.get_primary_email()
-            else:
-                email = user.email
+            email = get_user_primary_email(user)
             if hasattr(user, 'add_unconfirmed_email'):
                 user.add_unconfirmed_email(email)
             else:

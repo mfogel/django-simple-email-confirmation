@@ -44,7 +44,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'project.urls'
+ROOT_URLCONF = 'simple_email_confirmation.tests.myproject.urls'
 
 WSGI_APPLICATION = 'project.wsgi.application'
 

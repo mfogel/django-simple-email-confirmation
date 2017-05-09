@@ -92,13 +92,18 @@ Installation
 Running the Tests
 -----------------
 
-#.  Install `tox`__.
+#.  Install `tox`__ and `coverage`__
+
+    .. code:: sh
+
+        pip install tox coverage
 
 #.  From the repository root, run
 
     .. code:: sh
 
         tox
+        tox -e coverage
 
     It's that simple.
 
@@ -120,6 +125,7 @@ __ http://www.pip-installer.org/
 __ https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 __ https://docs.djangoproject.com/en/dev/topics/auth/customizing/#specifying-a-custom-user-model
 __ https://tox.readthedocs.org/
+__ https://coverage.readthedocs.org/
 __ https://github.com/mfogel/django-simple-email-confirmation
 __ https://github.com/pinax/django-email-confirmation
 __ https://github.com/jtauber/django-email-confirmation

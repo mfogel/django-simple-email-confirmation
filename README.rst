@@ -89,6 +89,16 @@ Installation
     Note: you don't strictly have to do this final step. Without this, you won't have the nice helper functions and properties on your `User` objects but the remainder of the app should function fine.
 
 
+Python/Django supported versions
+--------------------------------
+
+The actual supported versions are, as tested via tox (defined in tox.ini):
+
+Python: 2.7 and 3.4 to 3.6
+Django: 1.8 to 1.11
+
+
+
 Running the Tests
 -----------------
 

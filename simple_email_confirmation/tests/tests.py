@@ -1,6 +1,7 @@
 from datetime import timedelta
 from time import sleep
 
+from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -9,7 +10,7 @@ from django.test.utils import override_settings
 from ..exceptions import (
     EmailConfirmationExpired, EmailIsPrimary, EmailNotConfirmed,
 )
-from ..models import EmailAddress
+from ..models import EmailAddress, get_user_primary_email
 from ..signals import (
     email_confirmed, unconfirmed_email_created, primary_email_changed,
 )
@@ -209,6 +210,20 @@ class PrimaryEmailTestCase(TestCase):
 
         with self.assertRaises(EmailNotConfirmed):
             self.user.set_primary_email(email)
+
+    def test_getting_primary_email_with_mixin(self):
+        "Try to get the primary email of a user model with the mixin"
+        email = get_user_primary_email(self.user)
+        self.assertEqual(email, self.user.email)
+
+    def test_getting_primary_email_without_mixin(self):
+        "Try to get the primary email of a user model without the mixin"
+        model = apps.get_model('myapp', 'UserWithoutMixin')
+        other_user = model.objects.create_user(
+            'myname', email='somebody@important.com',
+        )
+        email = get_user_primary_email(other_user)
+        self.assertEqual(email, other_user.email)
 
 
 class AddEmailIfNotExistsTestCase(TestCase):

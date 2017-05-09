@@ -4,3 +4,7 @@ from simple_email_confirmation.models import SimpleEmailConfirmationUserMixin
 
 class User(SimpleEmailConfirmationUserMixin, AbstractUser):
     pass
+
+
+class UserWithoutMixin(AbstractUser):
+	pass

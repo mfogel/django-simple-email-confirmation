@@ -89,6 +89,13 @@ Installation
     Note: you don't strictly have to do this final step. Without this, you won't have the nice helper functions and properties on your `User` objects but the remainder of the app should function fine.
 
 
+Python/Django supported versions
+--------------------------------
+
+- Python: 2.7, 3.4, 3.5 and 3.6
+- Django: 1.8 to 1.11
+
+
 Running the Tests
 -----------------
 

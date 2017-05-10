@@ -294,3 +294,4 @@ class AutoAddTestCase(TestCase):
             'uname'
         )
         self.assertEqual(user.email_address_set.count(), 0)
+        self.assertFalse(user.is_confirmed)

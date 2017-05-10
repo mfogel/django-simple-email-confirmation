@@ -33,7 +33,7 @@ Create a new User, confirm their email:
     user = User.objects.create_user(email, email=email)
     user.is_confirmed # False
 
-    send_email(email, 'Use %s to confirm your email' % user.confirmation_key)
+    send_mail(email, 'Use %s to confirm your email' % user.confirmation_key)
     # User gets email, passes the confirmation_key back to your server
 
     user.confirm_email(user.confirmation_key)
@@ -47,7 +47,7 @@ Add another email to an existing User, confirm it, then set it as their primary.
     confirmation_key = user.add_unconfirmed_email(new_email)
     new_email in user.unconfirmed_emails # True
 
-    send_email(new_email, 'Use %s to confirm your new email' % confirmation_key)
+    send_mail(new_email, 'Use %s to confirm your new email' % confirmation_key)
     # User gets email, passes the confirmation_key back to your server
 
     user.confirm_email(confirmation_key)

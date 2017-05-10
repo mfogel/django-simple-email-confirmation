@@ -39,7 +39,7 @@ class SimpleEmailConfirmationUserMixin(object):
         if email == old_email:
             return
 
-        if email not in self.confirmed_emails and require_confirmed:
+        if email not in self.get_confirmed_emails() and require_confirmed:
             raise EmailNotConfirmed()
 
         setattr(self, self.primary_email_field_name, email)
@@ -51,7 +51,7 @@ class SimpleEmailConfirmationUserMixin(object):
     @property
     def is_confirmed(self):
         "Is the User's primary email address confirmed?"
-        return self.get_primary_email() in self.confirmed_emails
+        return self.get_primary_email() in self.get_confirmed_emails()
 
     @property
     def confirmed_at(self):

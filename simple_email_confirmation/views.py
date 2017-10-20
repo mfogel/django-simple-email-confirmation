@@ -4,7 +4,6 @@ from django.utils.translation import gettext_lazy as _
 
 
 class LoginView(auth_views.LoginView):
-    redirect_authenticated_user = True
 
     def post(self, request, *args, **kwargs):
         response = super(LoginView).post(request, *args, **kwargs)

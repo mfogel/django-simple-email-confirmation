@@ -276,7 +276,7 @@ class EmailAddress(models.Model):
 # by default, auto-add unconfirmed EmailAddress objects for new Users
 if getattr(settings, 'SIMPLE_EMAIL_CONFIRMATION_AUTO_ADD', True):
     def auto_add(sender, **kwargs):
-        if sender == get_user_model() and kwargs['created']:
+        if sender == get_user_model() and kwargs['created'] and not kwargs['raw']:
             user = kwargs.get('instance')
             email = get_user_primary_email(user)
             if email:

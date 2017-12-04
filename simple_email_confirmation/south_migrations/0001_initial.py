@@ -45,7 +45,7 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'key': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '40'}),
             'set_at': ('django.db.models.fields.DateTimeField', [], {}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'email_address_set'", 'to': "orm['%s']" % user_orm_label})
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'email_address_set'", 'to': "orm['%s']" % user_orm_label, 'on_delete': models.CASCADE})
         },
         user_model_label: {
         },

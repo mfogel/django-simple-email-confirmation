@@ -93,7 +93,7 @@ Python/Django supported versions
 --------------------------------
 
 - Python: 2.7, 3.4, 3.5 and 3.6
-- Django: 1.8 to 1.11
+- Django: 1.8 to 2.0
 
 
 Running the Tests

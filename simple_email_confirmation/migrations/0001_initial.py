@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ('key', models.CharField(unique=True, max_length=40)),
                 ('set_at', models.DateTimeField(default=django.utils.timezone.now, help_text='When the confirmation key expiration was set')),
                 ('confirmed_at', models.DateTimeField(help_text='First time this email was confirmed', null=True, blank=True)),
-                ('user', models.ForeignKey(related_name='email_address_set', to=settings.AUTH_USER_MODEL)),
+                ('user', models.ForeignKey(related_name='email_address_set', to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name_plural': 'email addresses',

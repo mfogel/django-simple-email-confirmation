@@ -1,7 +1,7 @@
 import re
+import sys
 from os import path
 from setuptools import setup
-
 
 # read() and find_version() taken from jezdez's python apps, ex:
 # https://github.com/jezdez/django_compressor/blob/develop/setup.py
@@ -37,7 +37,8 @@ setup(
         'simple_email_confirmation.tests.myproject',
         'simple_email_confirmation.tests.myproject.myapp',
     ],
-    install_requires=['django>=1.7.0'],
+    install_requires=['django>=1.7.0' if sys.version_info[0] > 2
+        else 'Django<2.0'],
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Environment :: Web Environment",

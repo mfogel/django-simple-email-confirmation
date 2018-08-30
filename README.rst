@@ -88,6 +88,28 @@ Installation
 
     Note: you don't strictly have to do this final step. Without this, you won't have the nice helper functions and properties on your `User` objects but the remainder of the app should function fine.
 
+#.  Change default settings (optional):
+
+    By default, keys don't expire. If you want them to, set `settings.SIMPLE_EMAIL_CONFIRMATION_PERIOD` to a timedelta.
+    .. code:: python
+
+        from datetime import timedelta
+
+        EMAIL_CONFIRMATION_PERIOD_DAYS = 7
+        SIMPLE_EMAIL_CONFIRMATION_PERIOD = timedelta(days=EMAIL_CONFIRMATION_PERIOD_DAYS)
+
+    By default, auto-add unconfirmed EmailAddress objects for new Users. If you want to change this behaviour, set `settings.SIMPLE_EMAIL_CONFIRMATION_AUTO_ADD` to False.
+
+    .. code::python
+
+        SIMPLE_EMAIL_CONFIRMATION_AUTO_ADD = False
+
+    By default, a length of keys is 12. If you want to change it, set `settings.SIMPLE_EMAIL_CONFIRMATION_KEY_LENGTH` to integer value (maximum 40).
+
+    .. code::python
+
+        SIMPLE_EMAIL_CONFIRMATION_KEY_LENGTH = 16
+
 
 Python/Django supported versions
 --------------------------------

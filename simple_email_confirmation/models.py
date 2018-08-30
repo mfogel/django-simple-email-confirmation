@@ -154,8 +154,11 @@ class EmailAddressManager(models.Manager):
 
     def generate_key(self):
         "Generate a new random key and return it"
-        # sticking with the django defaults
-        return get_random_string()
+        # By default, a length of keys is 12. If you want to change it, set
+        # settings.SIMPLE_EMAIL_CONFIRMATION_KEY_LENGTH to integer value (max 40).
+        return get_random_string(
+            length=min(getattr(settings, 'SIMPLE_EMAIL_CONFIRMATION_KEY_LENGTH', 12), 40)
+        )
 
     def create_confirmed(self, email, user=None):
         "Create an email address in the confirmed state"
@@ -198,7 +201,6 @@ class EmailAddressManager(models.Manager):
                 email_confirmed.send(sender=address.user, email=address.email)
 
         return address
-
 
 
 def get_user_primary_email(user):

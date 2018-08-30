@@ -91,6 +91,7 @@ Installation
 #.  Change default settings (optional):
 
     By default, keys don't expire. If you want them to, set `settings.SIMPLE_EMAIL_CONFIRMATION_PERIOD` to a timedelta.
+
     .. code:: python
 
         from datetime import timedelta
@@ -100,13 +101,13 @@ Installation
 
     By default, auto-add unconfirmed EmailAddress objects for new Users. If you want to change this behaviour, set `settings.SIMPLE_EMAIL_CONFIRMATION_AUTO_ADD` to False.
 
-    .. code::python
+    .. code:: python
 
         SIMPLE_EMAIL_CONFIRMATION_AUTO_ADD = False
 
     By default, a length of keys is 12. If you want to change it, set `settings.SIMPLE_EMAIL_CONFIRMATION_KEY_LENGTH` to integer value (maximum 40).
 
-    .. code::python
+    .. code:: python
 
         SIMPLE_EMAIL_CONFIRMATION_KEY_LENGTH = 16
 

@@ -33,6 +33,13 @@ class EmailConfirmationTestCase(TestCase):
         self.assertNotEqual(key2, key3)
         self.assertNotEqual(key1, key3)
 
+    def test_key_length(self):
+        "Generate a few keys and compare them length with the settings"
+        generator = EmailAddress.objects.generate_key
+        for _ in range(3):
+            key = generator()
+            self.assertEqual(len(key), settings.SIMPLE_EMAIL_CONFIRMATION_KEY_LENGTH)
+
     def test_create_confirmed(self):
         "Add an unconfirmed email for a User"
         email = 'test@test.test'

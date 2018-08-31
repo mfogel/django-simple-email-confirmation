@@ -80,3 +80,6 @@ STATIC_URL = '/static/'
 
 # Custom user model
 AUTH_USER_MODEL = 'myapp.User'
+
+# Set the length of a confirmation key
+SIMPLE_EMAIL_CONFIRMATION_KEY_LENGTH = 32

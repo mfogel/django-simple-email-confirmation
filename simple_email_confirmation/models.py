@@ -246,7 +246,7 @@ class EmailAddress(models.Model):
 
     @property
     def is_primary(self):
-        primary_email = get_user_primary_email(user)
+        primary_email = get_user_primary_email(self.user)
         return bool(primary_email == self.email)
 
     @property

@@ -212,7 +212,7 @@ def get_user_primary_email(user):
     return user.email
 
 
-class EmailAddress(models.Model):
+class AbstractEmailAddress(models.Model):
     "An email address belonging to a User"
 
     user = models.ForeignKey(
@@ -236,6 +236,7 @@ class EmailAddress(models.Model):
     class Meta:
         unique_together = (('user', 'email'),)
         verbose_name_plural = "email addresses"
+        abstract = True
 
     def __unicode__(self):
         return '{} <{}>'.format(self.user, self.email)
@@ -275,6 +276,10 @@ class EmailAddress(models.Model):
         self.save(update_fields=['key', 'set_at', 'confirmed_at'])
         return self.key
 
+
+class EmailAddress(AbstractEmailAddress):
+    class Meta(AbstractEmailAddress.Meta):
+        swappable = 'SIMPLE_EMAIL_ADDRESS_MODEL'
 
 # by default, auto-add unconfirmed EmailAddress objects for new Users
 if getattr(settings, 'SIMPLE_EMAIL_CONFIRMATION_AUTO_ADD', True):

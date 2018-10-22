@@ -9,3 +9,5 @@ __all__ = [
 from .signals import (
     email_confirmed, unconfirmed_email_created, primary_email_changed,
 )
+
+from .mixins import SimpleEmailConfirmationUserMixin  # noqa

@@ -81,7 +81,7 @@ Installation
     .. code:: python
 
         from django.contrib.auth.models import AbstractUser
-        from simple_email_confirmation.models import SimpleEmailConfirmationUserMixin
+        from simple_email_confirmation import SimpleEmailConfirmationUserMixin
 
         class User(SimpleEmailConfirmationUserMixin, AbstractUser):
             pass
@@ -110,6 +110,12 @@ Installation
     .. code:: python
 
         SIMPLE_EMAIL_CONFIRMATION_KEY_LENGTH = 16
+
+    To override the default EmailAddress model, set `settings.SIMPLE_EMAIL_CONFIRMATION_EMAIL_ADDRESS_MODEL`.
+
+    .. code:: python
+
+        SIMPLE_EMAIL_CONFIRMATION_EMAIL_ADDRESS_MODEL = 'simple_email_confirmation.models.EmailAddress'
 
 
 Python/Django supported versions

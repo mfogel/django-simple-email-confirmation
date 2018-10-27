@@ -1,3 +1,5 @@
+import uuid
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
@@ -9,4 +11,13 @@ class User(SimpleEmailConfirmationUserMixin, AbstractUser):
 
 
 class UserWithoutMixin(models.Model):
-       email = models.EmailField()
+    email = models.EmailField()
+
+
+class CustomEmailAddress(models.Model):
+    """
+    A model to test the get_email_address_model method.
+    Example of completely overriding the existing email address.
+    """
+    custom_id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    other_field = models.CharField(max_length=255)

@@ -10,10 +10,12 @@ from django.test.utils import override_settings
 from ..exceptions import (
     EmailConfirmationExpired, EmailIsPrimary, EmailNotConfirmed,
 )
-from ..models import EmailAddress, get_user_primary_email
+from ..models import EmailAddress, get_user_primary_email, get_email_address_model
 from ..signals import (
     email_confirmed, unconfirmed_email_created, primary_email_changed,
 )
+
+from .myproject.myapp.models import CustomEmailAddress
 
 
 class EmailConfirmationTestCase(TestCase):
@@ -302,3 +304,31 @@ class AutoAddTestCase(TestCase):
         )
         self.assertEqual(user.email_address_set.count(), 0)
         self.assertFalse(user.is_confirmed)
+
+
+class EmailAddressModelTestCase(TestCase):
+    """
+    Test the get_email_address_model method.
+    """
+    test_email = ''
+    user = None
+
+    def setUp(self):
+        self.test_email = 't@t.com'
+        self.user = get_user_model().objects.create_user('user', email=self.test_email)
+
+    @override_settings(SIMPLE_EMAIL_CONFIRMATION_EMAIL_ADDRESS_MODEL='myapp.CustomEmailAddress')
+    def test_get_email_address_model_custom(self):
+        model = get_email_address_model()
+        self.assertTrue(model is CustomEmailAddress, model)
+        obj = model.objects.create(other_field="Some text")
+        self.assertTrue(obj.pk is obj.custom_id)
+
+    def test_get_email_address_model_default(self):
+        model = get_email_address_model()
+        self.assertTrue(model is EmailAddress, model)
+        self.assertTrue(isinstance(
+            self.user.email_address_set.get(email=self.test_email),
+            EmailAddress),
+            type(self.user.email_address_set.get(email=self.test_email))
+        )

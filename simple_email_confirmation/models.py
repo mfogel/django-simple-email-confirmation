@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
@@ -126,7 +127,7 @@ class SimpleEmailConfirmationUserMixin(object):
         """
         try:
             address = self.email_address_set.get(email=email)
-        except EmailAddress.DoesNotExist:
+        except get_email_address_model().DoesNotExist:
             key = self.add_unconfirmed_email(email)
         else:
             if not address.is_confirmed:
@@ -269,7 +270,7 @@ class AbstractEmailAddress(models.Model):
         with this email.  Note that the previou confirmation key will
         cease to work.
         """
-        self.key = EmailAddress._default_manager.generate_key()
+        self.key = get_email_address_model()._default_manager.generate_key()
         self.set_at = timezone.now()
 
         self.confirmed_at = None
@@ -279,7 +280,8 @@ class AbstractEmailAddress(models.Model):
 
 class EmailAddress(AbstractEmailAddress):
     class Meta(AbstractEmailAddress.Meta):
-        swappable = 'SIMPLE_EMAIL_ADDRESS_MODEL'
+        swappable = 'SIMPLE_EMAIL_CONFIRMATION_EMAIL_ADDRESS_MODEL'
+
 
 # by default, auto-add unconfirmed EmailAddress objects for new Users
 if getattr(settings, 'SIMPLE_EMAIL_CONFIRMATION_AUTO_ADD', True):
@@ -297,3 +299,12 @@ if getattr(settings, 'SIMPLE_EMAIL_CONFIRMATION_AUTO_ADD', True):
     #       get_user_model() here - results in import loop.
 
     post_save.connect(auto_add)
+
+
+def get_email_address_model():
+    """Convenience method to return the email model being used."""
+    return apps.get_model(getattr(
+        settings,
+        'SIMPLE_EMAIL_CONFIRMATION_EMAIL_ADDRESS_MODEL',
+        'simple_email_confirmation.EmailAddress'
+    ))

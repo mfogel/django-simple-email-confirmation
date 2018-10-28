@@ -100,7 +100,7 @@ class SimpleEmailConfirmationUserMixin(object):
         Attempt to confirm an email using the given key.
         Returns the email that was confirmed, or raise an exception.
         """
-        address = self.email_address_set.confirm(confirmation_key, save=save)
+        address = self.email_address_set.confirm(confirmation_key, save=save, user=self)
         return address.email
 
     def add_confirmed_email(self, email):

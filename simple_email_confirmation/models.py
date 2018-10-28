@@ -167,7 +167,7 @@ class EmailAddressManager(models.Manager):
             raise ValueError('Must specify user or call from related manager')
         key = self.generate_key()
         now = timezone.now()
-        while self.exists(key=key):
+        while self.filter(key=key).exists():
             key = self.generate_key()
         # let email-already-exists exception propogate through
         address = self.create(

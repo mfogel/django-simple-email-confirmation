@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
@@ -9,6 +8,7 @@ from django.utils.crypto import get_random_string
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
+from simple_email_confirmation import get_email_address_model
 from .exceptions import (
     EmailConfirmationExpired, EmailIsPrimary, EmailNotConfirmed,
 )
@@ -299,12 +299,3 @@ if getattr(settings, 'SIMPLE_EMAIL_CONFIRMATION_AUTO_ADD', True):
     #       get_user_model() here - results in import loop.
 
     post_save.connect(auto_add)
-
-
-def get_email_address_model():
-    """Convenience method to return the email model being used."""
-    return apps.get_model(getattr(
-        settings,
-        'SIMPLE_EMAIL_CONFIRMATION_EMAIL_ADDRESS_MODEL',
-        'simple_email_confirmation.EmailAddress'
-    ))

@@ -1,5 +1,4 @@
 .tox/
 dist/
-.idea/
 *.egg-info/
 *.pyc

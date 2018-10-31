@@ -10,7 +10,8 @@ from django.test.utils import override_settings
 from ..exceptions import (
     EmailConfirmationExpired, EmailIsPrimary, EmailNotConfirmed,
 )
-from ..models import EmailAddress, get_user_primary_email, get_email_address_model
+from simple_email_confirmation import get_email_address_model
+from ..models import EmailAddress, get_user_primary_email
 from ..signals import (
     email_confirmed, unconfirmed_email_created, primary_email_changed,
 )

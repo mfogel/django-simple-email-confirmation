@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import get_email_address_model
+from simple_email_confirmation import get_email_address_model
 
 
 class EmailAddressAdmin(admin.ModelAdmin):

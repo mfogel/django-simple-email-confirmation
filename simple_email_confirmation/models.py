@@ -6,6 +6,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.utils.crypto import get_random_string
 from django.utils import timezone
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 from simple_email_confirmation import get_email_address_model
@@ -213,6 +214,7 @@ def get_user_primary_email(user):
     return user.email
 
 
+@python_2_unicode_compatible
 class AbstractEmailAddress(models.Model):
     "An email address belonging to a User"
 
@@ -239,7 +241,7 @@ class AbstractEmailAddress(models.Model):
         verbose_name_plural = "email addresses"
         abstract = True
 
-    def __unicode__(self):
+    def __str__(self):
         return '{} <{}>'.format(self.user, self.email)
 
     @property
@@ -267,7 +269,7 @@ class AbstractEmailAddress(models.Model):
     def reset_confirmation(self):
         """
         Re-generate the confirmation key and key expiration associated
-        with this email.  Note that the previou confirmation key will
+        with this email.  Note that the previous confirmation key will
         cease to work.
         """
         self.key = get_email_address_model()._default_manager.generate_key()

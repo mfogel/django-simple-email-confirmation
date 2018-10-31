@@ -173,6 +173,10 @@ class EmailConfirmationTestCase(TestCase):
         self.user.remove_email(email_confirmed)
         self.assertNotIn(email_confirmed, self.user.get_confirmed_emails())
 
+    def test_confirmation_key_property(self):
+        email = self.user.email_address_set.get(email=self.user.email)
+        self.assertEqual(self.user.confirmation_key, email.key)
+
 
 class PrimaryEmailTestCase(TestCase):
 
@@ -181,7 +185,7 @@ class PrimaryEmailTestCase(TestCase):
         self.user = get_user_model().objects.create_user('uname', email=email)
 
     def test_set_primary_email(self):
-        "Set an email to priamry"
+        "Set an email to primary"
         # set up two emails, confirm them post
         email1 = '1@t.t'
         self.user.add_confirmed_email(email1)
@@ -231,6 +235,13 @@ class PrimaryEmailTestCase(TestCase):
         other_user = model.objects.create(email='somebody@important.com')
         email = get_user_primary_email(other_user)
         self.assertEqual(email, other_user.email)
+
+    def test_is_primary_property(self):
+        self.assertTrue(self.user.email_address_set.get(email=self.user.email).is_primary)
+
+    def test_unicode(self):
+        email_obj = self.user.email_address_set.get(email=self.user.email)
+        self.assertEqual('%s' % email_obj, '%s <%s>' % (self.user, self.user.email))
 
 
 class AddEmailIfNotExistsTestCase(TestCase):

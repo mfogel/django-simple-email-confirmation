@@ -8,4 +8,4 @@ class EmailAddressAdmin(admin.ModelAdmin):
     search_fields = ('email', 'key')
 
 
-admin.site.register((get_email_address_model(),), EmailAddressAdmin)
+admin.site.register(get_email_address_model(), EmailAddressAdmin)

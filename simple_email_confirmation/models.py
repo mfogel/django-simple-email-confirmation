@@ -6,8 +6,10 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.utils.crypto import get_random_string
 from django.utils import timezone
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
+from simple_email_confirmation import get_email_address_model
 from .exceptions import (
     EmailConfirmationExpired, EmailIsPrimary, EmailNotConfirmed,
 )
@@ -126,7 +128,7 @@ class SimpleEmailConfirmationUserMixin(object):
         """
         try:
             address = self.email_address_set.get(email=email)
-        except EmailAddress.DoesNotExist:
+        except get_email_address_model().DoesNotExist:
             key = self.add_unconfirmed_email(email)
         else:
             if not address.is_confirmed:
@@ -212,7 +214,8 @@ def get_user_primary_email(user):
     return user.email
 
 
-class EmailAddress(models.Model):
+@python_2_unicode_compatible
+class AbstractEmailAddress(models.Model):
     "An email address belonging to a User"
 
     user = models.ForeignKey(
@@ -236,8 +239,9 @@ class EmailAddress(models.Model):
     class Meta:
         unique_together = (('user', 'email'),)
         verbose_name_plural = "email addresses"
+        abstract = True
 
-    def __unicode__(self):
+    def __str__(self):
         return '{} <{}>'.format(self.user, self.email)
 
     @property
@@ -265,15 +269,20 @@ class EmailAddress(models.Model):
     def reset_confirmation(self):
         """
         Re-generate the confirmation key and key expiration associated
-        with this email.  Note that the previou confirmation key will
+        with this email.  Note that the previous confirmation key will
         cease to work.
         """
-        self.key = EmailAddress._default_manager.generate_key()
+        self.key = get_email_address_model()._default_manager.generate_key()
         self.set_at = timezone.now()
 
         self.confirmed_at = None
         self.save(update_fields=['key', 'set_at', 'confirmed_at'])
         return self.key
+
+
+class EmailAddress(AbstractEmailAddress):
+    class Meta(AbstractEmailAddress.Meta):
+        swappable = 'SIMPLE_EMAIL_CONFIRMATION_EMAIL_ADDRESS_MODEL'
 
 
 # by default, auto-add unconfirmed EmailAddress objects for new Users

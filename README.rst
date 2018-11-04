@@ -111,6 +111,17 @@ Installation
 
         SIMPLE_EMAIL_CONFIRMATION_KEY_LENGTH = 16
 
+    You are able to override the EmailAddress model provided with this app. This works in a similar fashion as Django's custom user model and allows you to add fields to the EmailAddress model, such as a uuid, or define your own model completely. To set a custom email address model, set `settings.SIMPLE_EMAIL_CONFIRMATION_EMAIL_ADDRESS_MODEL` to the model you would like to use in the <app_label>.<model_name> fashion.
+
+    An admin interface is included with simple email confirmation. Although, it is designed to work with the EmailAddress provided. Functionality with the admin cannot be guaranteed when a custom model is used so it is recommended you provide your own admin definition.
+
+    Note for existing apps that already use the provided model:
+
+        Similar to Django's custom user model, migrating a custom email address model after the default one is already migrated is not supported and could have unforeseen side effects. The recommendation is to use a custom model from the beginning of development.
+
+    .. code:: python
+
+        SIMPLE_EMAIL_CONFIRMATION_EMAIL_ADDRESS_MODEL = 'yourapp.EmailAddress'
 
 Python/Django supported versions
 --------------------------------

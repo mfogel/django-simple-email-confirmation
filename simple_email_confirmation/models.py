@@ -24,16 +24,8 @@ class SimpleEmailConfirmationUserMixin(object):
     Provides python-level functionality only.
     """
 
-    # if your User object stores the User's primary email address
-    # in a place other than User.email, you can override the
-    # primary_email_field_name and/or primary_email get/set methods.
-    # All access to a User's primary_email in this app passes through
-    # these two get/set methods.
-
-    primary_email_field_name = 'email'
-
     def get_primary_email(self):
-        return getattr(self, self.primary_email_field_name)
+        return getattr(self, self.get_email_field_name())
 
     def set_primary_email(self, email, require_confirmed=True):
         "Set an email address as primary"
@@ -44,8 +36,8 @@ class SimpleEmailConfirmationUserMixin(object):
         if email not in self.confirmed_emails and require_confirmed:
             raise EmailNotConfirmed()
 
-        setattr(self, self.primary_email_field_name, email)
-        self.save(update_fields=[self.primary_email_field_name])
+        setattr(self, self.get_email_field_name(), email)
+        self.save(update_fields=[self.get_email_field_name()])
         primary_email_changed.send(
             sender=self, old_email=old_email, new_email=email,
         )

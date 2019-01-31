@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+import warnings
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -25,7 +26,21 @@ class SimpleEmailConfirmationUserMixin(object):
     """
 
     def get_primary_email(self):
-        return getattr(self, self.get_email_field_name())
+        if hasattr(self, 'primary_email_field_name'):
+            # Warn user about 'primary_email_field_name' deprecation
+            warnings.simplefilter('default')
+            warnings.warn(
+                (
+                    "Use 'EMAIL_FIELD' instead of 'primary_email_field_name' "
+                    'to set the primary email field name. '
+                    'For more information, see: '
+                    'https://docs.djangoproject.com/en/2.1/topics/auth/customizing/#django.contrib.auth.models.CustomUser.EMAIL_FIELD'  # noqa
+                ),
+                DeprecationWarning,
+            )
+            return getattr(self, 'primary_email_field_name')
+
+        return self.get_email_field_name()
 
     def set_primary_email(self, email, require_confirmed=True):
         "Set an email address as primary"
@@ -36,8 +51,8 @@ class SimpleEmailConfirmationUserMixin(object):
         if email not in self.confirmed_emails and require_confirmed:
             raise EmailNotConfirmed()
 
-        setattr(self, self.get_email_field_name(), email)
-        self.save(update_fields=[self.get_email_field_name()])
+        setattr(self, self.get_primary_email(), email)
+        self.save(update_fields=[self.get_primary_email()])
         primary_email_changed.send(
             sender=self, old_email=old_email, new_email=email,
         )

@@ -66,7 +66,7 @@ class EmailConfirmationTestCase(TestCase):
 
         # assert signal fires as expected
         def listener(sender, **kwargs):
-            self.assertEqual(sender, self.user)
+            self.assertEqual(sender, self.user.__class__)
             self.assertEqual(email, kwargs.get('email'))
         unconfirmed_email_created.connect(listener)
 
@@ -99,7 +99,7 @@ class EmailConfirmationTestCase(TestCase):
 
         # assert signal fires as expected
         def listener(sender, **kwargs):
-            self.assertEqual(sender, self.user)
+            self.assertEqual(sender, self.user.__class__)
             self.assertEqual(kwargs.get('email'), self.user.email)
         email_confirmed.connect(listener)
 
@@ -197,7 +197,7 @@ class PrimaryEmailTestCase(TestCase):
 
         # assert signal fires as expected
         def listener(sender, **kwargs):
-            self.assertEqual(sender, self.user)
+            self.assertEqual(sender, self.user.__class__)
             self.assertEqual(kwargs.get('old_email'), email1)
             self.assertEqual(kwargs.get('new_email'), email2)
         primary_email_changed.connect(listener)

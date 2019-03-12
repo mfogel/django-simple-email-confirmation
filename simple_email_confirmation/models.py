@@ -47,7 +47,8 @@ class SimpleEmailConfirmationUserMixin(object):
         setattr(self, self.primary_email_field_name, email)
         self.save(update_fields=[self.primary_email_field_name])
         primary_email_changed.send(
-            sender=self, old_email=old_email, new_email=email,
+            sender=self.__class__, user=self,
+            old_email=old_email, new_email=email,
         )
 
     @property
@@ -183,7 +184,9 @@ class EmailAddressManager(models.Manager):
         key = self.generate_key()
         # let email-already-exists exception propogate through
         address = self.create(user=user, email=email, key=key)
-        unconfirmed_email_created.send(sender=user, email=email)
+        unconfirmed_email_created.send(
+            sender=user.__class__, user=user, email=email
+        )
         return address
 
     def confirm(self, key, user=None, save=True):
@@ -200,7 +203,11 @@ class EmailAddressManager(models.Manager):
             address.confirmed_at = timezone.now()
             if save:
                 address.save(update_fields=['confirmed_at'])
-                email_confirmed.send(sender=address.user, email=address.email)
+                email_confirmed.send(
+                    sender=address.user.__class__,
+                    user=address.user,
+                    email=address.email
+                )
 
         return address
 

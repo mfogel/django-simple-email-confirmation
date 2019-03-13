@@ -62,17 +62,18 @@ class EmailConfirmationTestCase(TestCase):
 
     def test_create_unconfirmed(self):
         "Add an unconfirmed email for a User"
-        email = 'test@test.test'
+        new_email = 'test@test.test'
 
         # assert signal fires as expected
-        def listener(sender, **kwargs):
+        def listener(sender, user, email, **kwargs):
             self.assertEqual(sender, self.user.__class__)
-            self.assertEqual(email, kwargs.get('email'))
+            self.assertEqual(user, self.user)
+            self.assertEqual(email, new_email)
         unconfirmed_email_created.connect(listener)
 
-        key = self.user.add_unconfirmed_email(email)
+        key = self.user.add_unconfirmed_email(new_email)
 
-        address = self.user.email_address_set.get(email=email)
+        address = self.user.email_address_set.get(email=new_email)
         self.assertFalse(address.is_confirmed)
         self.assertEqual(address.confirmed_at, None)
         self.assertEqual(address.key, key)
@@ -98,9 +99,10 @@ class EmailConfirmationTestCase(TestCase):
         self.user.add_unconfirmed_email(email3)
 
         # assert signal fires as expected
-        def listener(sender, **kwargs):
+        def listener(sender, user, email, **kwargs):
             self.assertEqual(sender, self.user.__class__)
-            self.assertEqual(kwargs.get('email'), self.user.email)
+            self.assertEqual(user, self.user)
+            self.assertEqual(email, self.user.email)
         email_confirmed.connect(listener)
 
         self.user.confirm_email(self.user.get_confirmation_key())
@@ -196,10 +198,11 @@ class PrimaryEmailTestCase(TestCase):
         self.user.add_confirmed_email(email2)
 
         # assert signal fires as expected
-        def listener(sender, **kwargs):
+        def listener(sender, user, old_email, new_email, **kwargs):
             self.assertEqual(sender, self.user.__class__)
-            self.assertEqual(kwargs.get('old_email'), email1)
-            self.assertEqual(kwargs.get('new_email'), email2)
+            self.assertEqual(user, self.user)
+            self.assertEqual(old_email, email1)
+            self.assertEqual(new_email, email2)
         primary_email_changed.connect(listener)
 
         self.user.set_primary_email(email2)

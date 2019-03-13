@@ -123,6 +123,33 @@ Installation
 
         SIMPLE_EMAIL_CONFIRMATION_EMAIL_ADDRESS_MODEL = 'yourapp.EmailAddress'
 
+
+Migrating
+---------
+
+0.23 to 1.0
+~~~~~~~~~~~
+
+A number of backwards incompatible changes are included in the 1.0 release.
+
+- Signal arguments have been refactored. Now, the `email_confirmed`, `unconfirmed_email_created`, and `primary_email_changed` signals send the user class as the `sender` argument and include the user instance as an additional `user` argument. You can update your code as follows:
+
+    .. code:: python
+
+        @receiver(email_confirmed)
+        def listener(sender, user, email, **kwargs):
+            pass
+
+        @receiver(unconfirmed_email_created)
+        def listener(sender, user, email, **kwargs):
+            pass
+
+        @receiver(primary_email_changed)
+        def listener(sender, user, old_email, new_email, **kwargs):
+            pass
+
+
+
 Python/Django supported versions
 --------------------------------
 

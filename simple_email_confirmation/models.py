@@ -40,7 +40,7 @@ class SimpleEmailConfirmationUserMixin(object):
             )
             return getattr(self, 'primary_email_field_name')
 
-        return self.get_email_field_name()
+        return getattr(self, self.get_email_field_name())
 
     def set_primary_email(self, email, require_confirmed=True):
         "Set an email address as primary"

@@ -6,7 +6,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.utils.crypto import get_random_string
 from django.utils import timezone
-from django.utils.encoding import python_2_unicode_compatible
+from six import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 from simple_email_confirmation import get_email_address_model

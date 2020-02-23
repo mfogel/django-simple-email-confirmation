@@ -1,4 +1,4 @@
-__version__ = '0.7'
+__version__ = '0.70'
 __all__ = [
     'email_confirmed',
     'unconfirmed_email_created',

@@ -1,13 +1,10 @@
-from __future__ import unicode_literals
-
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models.signals import post_save
 from django.utils.crypto import get_random_string
 from django.utils import timezone
-from six import python_2_unicode_compatible
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from simple_email_confirmation import get_email_address_model
 from .exceptions import (
@@ -18,7 +15,7 @@ from .signals import (
 )
 
 
-class SimpleEmailConfirmationUserMixin(object):
+class SimpleEmailConfirmationUserMixin:
     """
     Mixin to be used with your django 1.5+ custom User model.
     Provides python-level functionality only.
@@ -225,7 +222,6 @@ def get_user_primary_email(user):
     return user.email
 
 
-@python_2_unicode_compatible
 class AbstractEmailAddress(models.Model):
     "An email address belonging to a User"
 
@@ -253,7 +249,7 @@ class AbstractEmailAddress(models.Model):
         abstract = True
 
     def __str__(self):
-        return '{} <{}>'.format(self.user, self.email)
+        return f'{self.user} <{self.email}>'
 
     @property
     def is_confirmed(self):

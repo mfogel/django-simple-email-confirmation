@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from django.db import models, migrations
 import django.utils.timezone
 from django.conf import settings
@@ -30,6 +27,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterUniqueTogether(
             name='emailaddress',
-            unique_together=set([('user', 'email')]),
+            unique_together={('user', 'email')},
         ),
     ]

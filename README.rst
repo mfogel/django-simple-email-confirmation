@@ -153,8 +153,8 @@ A number of backwards incompatible changes are included in the 1.0 release.
 Python/Django supported versions
 --------------------------------
 
-- Python: 2.7, 3.4, 3.5 and 3.6
-- Django: 1.8 to 2.0
+- Python: 3.6+
+- Django: 3.2+, 4.0+
 
 
 Running the Tests

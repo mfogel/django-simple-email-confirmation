@@ -245,7 +245,7 @@ class PrimaryEmailTestCase(TestCase):
 
     def test_unicode(self):
         email_obj = self.user.email_address_set.get(email=self.user.email)
-        self.assertEqual('%s' % email_obj, '%s <%s>' % (self.user, self.user.email))
+        self.assertEqual('%s' % email_obj, f'{self.user} <{self.user.email}>')
 
 
 class AddEmailIfNotExistsTestCase(TestCase):

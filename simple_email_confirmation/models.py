@@ -7,7 +7,11 @@ from django.db.models.signals import post_save
 from django.utils.crypto import get_random_string
 from django.utils import timezone
 from six import python_2_unicode_compatible
-from django.utils.translation import ugettext_lazy as _
+import django
+if django.VERSION < (4, 0):
+    from django.utils.translation import ugettext_lazy as _
+else:
+    from django.utils.translation import gettext_lazy as _
 
 from simple_email_confirmation import get_email_address_model
 from .exceptions import (

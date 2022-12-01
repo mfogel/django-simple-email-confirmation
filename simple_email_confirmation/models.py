@@ -1,12 +1,19 @@
 from __future__ import unicode_literals
 
+from random import randint
+
+import django
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models.signals import post_save
-from django.utils.crypto import get_random_string
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.crypto import get_random_string
+
+if django.get_version() > '4':
+    from django.utils.translation import gettext_lazy as _
+else:
+    from django.utils.translation import ugettext_lazy as _
 
 from .exceptions import (
     EmailConfirmationExpired, EmailIsPrimary, EmailNotConfirmed,
@@ -155,7 +162,7 @@ class EmailAddressManager(models.Manager):
     def generate_key(self):
         "Generate a new random key and return it"
         # sticking with the django defaults
-        return get_random_string()
+        return get_random_string(length=randint(15, 20))
 
     def create_confirmed(self, email, user=None):
         "Create an email address in the confirmed state"
@@ -204,7 +211,7 @@ class EmailAddress(models.Model):
     "An email address belonging to a User"
 
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, related_name='email_address_set',
+        settings.AUTH_USER_MODEL, related_name='email_address_set', on_delete=models.CASCADE
     )
     email = models.EmailField(max_length=255)
     key = models.CharField(max_length=40, unique=True)
@@ -278,6 +285,7 @@ if getattr(settings, 'SIMPLE_EMAIL_CONFIRMATION_AUTO_ADD', True):
                 user.add_unconfirmed_email(email)
             else:
                 user.email_address_set.create_unconfirmed(email)
+
 
     # TODO: try to only connect this to the User model. We can't use
     #       get_user_model() here - results in import loop.

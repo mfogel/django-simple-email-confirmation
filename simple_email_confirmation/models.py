@@ -209,7 +209,7 @@ class EmailAddress(models.Model):
     "An email address belonging to a User"
 
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, related_name='email_address_set',
+        settings.AUTH_USER_MODEL, related_name='email_address_set', on_delete=models.CASCADE
     )
     email = models.EmailField(max_length=255)
     key = models.CharField(max_length=40, unique=True)

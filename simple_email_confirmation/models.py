@@ -1,12 +1,17 @@
 from __future__ import unicode_literals
 
+import django
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models.signals import post_save
-from django.utils.crypto import get_random_string
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.crypto import get_random_string
+
+if django.get_version() > '4':
+    from django.utils.translation import gettext_lazy as _
+else:
+    from django.utils.translation import ugettext_lazy as _
 
 from .exceptions import (
     EmailConfirmationExpired, EmailIsPrimary, EmailNotConfirmed,
@@ -278,6 +283,7 @@ if getattr(settings, 'SIMPLE_EMAIL_CONFIRMATION_AUTO_ADD', True):
                 user.add_unconfirmed_email(email)
             else:
                 user.email_address_set.create_unconfirmed(email)
+
 
     # TODO: try to only connect this to the User model. We can't use
     #       get_user_model() here - results in import loop.

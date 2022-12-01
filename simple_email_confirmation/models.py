@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+from random import randint
+
 import django
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -160,7 +162,7 @@ class EmailAddressManager(models.Manager):
     def generate_key(self):
         "Generate a new random key and return it"
         # sticking with the django defaults
-        return get_random_string()
+        return get_random_string(length=randint(15, 20))
 
     def create_confirmed(self, email, user=None):
         "Create an email address in the confirmed state"

@@ -56,6 +56,7 @@ Add another email to an existing User, confirm it, then set it as their primary.
     user.set_primary_email(new_email)
     user.email # newaddr@nowhere.com
 
+There is also an exemple app in the repo to help you
 
 Installation
 ------------

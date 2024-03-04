@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<pre>
+Welcome to the example app
+=====
+{% for message in messages %}{{ message }}
+{% endfor %}
+{% if request.user.is_anonymous %}
+You need to <a href="{% url 'login' %}">login</a>  or <a href="{% url 'signup' %}">sign up</a> before you can see the content
+{% elif not request.user.is_confirmed %}
+You're not confirmed yet, <a href="{% url 'confirm_email' %}">confirm email here</a>
+
+<a href="{% url 'logout' %}">logout</a>
+{% else %}
+Welcome {{ request.user }}
+
+<a href="{% url 'logout' %}">logout</a>
+{% endif %}
+</pre>
+{% endblock %}
